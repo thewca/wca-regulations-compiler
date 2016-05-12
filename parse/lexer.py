@@ -14,7 +14,7 @@ class WCALexer(object):
         'H1',
         'H2',
         'H3',
-        'LABELDEF',
+        'LABELDECL',
         'ARTICLENUMBER',
         'TAG',
         'INDENT',
@@ -43,7 +43,7 @@ class WCALexer(object):
         r'<table-of-contents>'
         return token
 
-    def t_LABELDEF(self, token):
+    def t_LABELDECL(self, token):
         r'<label>'
         return token
 
@@ -73,7 +73,7 @@ class WCALexer(object):
         return token
 
     def t_LABEL(self, token):
-        r'\[.+\](?!\()'
+        r'\[[^\]]+\](?!\()'
         # Negative lookahead for a parenthesis (markdown link)
         # FIXME use named group
         token.value = token.value[1:-1]
