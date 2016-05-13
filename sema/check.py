@@ -6,6 +6,7 @@ class SemaAnalysis(ASTVisitor):
         self.errors = []
         self.warnings = []
 
+# TODO check a regulation against another (ie translation against original) and get the diff
 
 class HierarchyCheck(SemaAnalysis):
     def __init__(self):
@@ -34,7 +35,9 @@ class HierarchyCheck(SemaAnalysis):
         last = self.lastrule[-1]
         # Here parent cannot be none, it's either another regulation or an article
         # (both have a "number" member)
-        if not reg.number.startswith(reg.parent.number):
+        if (not reg.number.startswith(reg.parent.number) or
+                (self.rootnode_type == WCARegulations and
+                 reg.parent.depth() + 1 != reg.depth())):
             self.errors.append(self.err_misplaced %
                                (str(reg.__class__.__name__),
                                 reg.number,
@@ -69,10 +72,10 @@ class LabelCheck(SemaAnalysis):
         return True
 
     def visitGuideline(self, reg):
-        if reg.label in self.labels:
-            self.labels[reg.label] = True
+        if reg.labelname in self.labels:
+            self.labels[reg.labelname] = True
         else:
-            self.errors.append(self.err_undefined % (reg.number, reg.label))
+            self.errors.append(self.err_undefined % (reg.number, reg.labelname))
 
     def end_of_document(self, document):
         for key, value in self.labels.iteritems():

@@ -66,23 +66,36 @@ class WCAParser(object):
         lhs[0] = []
         if len(lhs) == 3:
             lhs[0] = lhs[1]
-        # For some reason here lhs[len(lhs)-1] may be different from lhs[-1]
+        # lhs[len(lhs)-1] may be different from lhs[-1]
+        # Yacc use some internal method to get the element, see yacc.py:240
         item = lhs[len(lhs) - 1]
         if item:
             lhs[0].append(item)
 
     def p_content(self, content):
-        '''content : title version sections'''
-        content[0] = self.doctype(content[1], content[2], content[3])
+        '''content : TITLE VERSION PARBREAK sections'''
+        content[0] = self.doctype(content[1], content[2], content[4])
         self.toc.set_articles([a for a in content[0].sections if isinstance(a, Article)])
 
-    def p_title(self, title):
-        '''title : H1 TITLE STRING'''
-        title[0] = title[3]
+    def p_texts(self, texts):
+        '''texts : textlist'''
+        # We want to merge back the text that we had to split in lexer
+        # One \n means linebreak, \n\n changes paragraph
+        texts[0] = "\n".join(texts[1])
 
-    def p_version(self, version):
-        '''version : VERSION STRING'''
-        version[0] = version[2]
+    def p_textlist(self, textlist):
+        '''textlist : textlist text
+                 | text'''
+        self._act_on_list(textlist)
+
+    def p_text(self, text):
+        '''text : TEXT PARBREAK
+                | TEXT
+                | PARBREAK'''
+        item = text[1]
+        text[0] = item if item[0] != "\n" else u""
+        if len(text) > 2:
+            text[0] += "\n"
 
     def p_sections(self, sections):
         '''sections : sections section
@@ -90,26 +103,56 @@ class WCAParser(object):
         self._act_on_list(sections)
 
     def p_section(self, section):
-        '''section : h2 sectionintro sectioncontent'''
-        if isinstance(section[1], tuple):
-            section[0] = Article(section[1][4], section[2], section[3], section[1][0],
-                                 section[1][1], section[1][2], section[1][3])
-        elif not isinstance(section[3], list):
-            section[0] = TableOfContent(section[1], section[2], [])
-            self.toc = section[0]
-        else:
-            section[0] = Section(section[1], section[2], section[3])
+        '''section : toc
+                   | article
+                   | regularsec'''
+        section[0] = section[1]
 
-    def p_sectionintro(self, sectionintro):
-        '''sectionintro : paragraphs
-                        | empty'''
-        sectionintro[0] = sectionintro[1]
+    def p_toc(self, toc):
+        '''toc : HEADERSEC opttexts TOC opttexts'''
+        toc[0] = TableOfContent(toc[1], toc[2], [])
+        self.toc = toc[0]
 
-    def p_sectioncontent(self, sectioncontent):
-        '''sectioncontent : rules
-                          | subsections
-                          | TOC '''
-        sectioncontent[0] = sectioncontent[1]
+    def p_article(self, article):
+        '''article : ARTICLEHEADER opttexts rules opttexts'''
+        article[0] = Article(article[1][4], article[2], article[3], article[1][0],
+                             article[1][1], article[1][2], article[1][3], article[1][5])
+
+
+    def p_regularsec(self, regularsec):
+        '''regularsec : HEADERSEC opttexts subsections'''
+        texts = []
+        sections = regularsec[2]
+        if len(regularsec) > 3:
+            texts = regularsec[2]
+            sections = regularsec[3]
+        regularsec[0] = Section(regularsec[1], texts, sections)
+
+    def p_opttexts(self, opttexts):
+        '''opttexts : texts
+                    | '''
+        opttexts[0] = opttexts[1] if len(opttexts) > 1 else u""
+
+
+    def p_subsections(self, subsections):
+        '''subsections : subsections subsection
+                       | subsection'''
+        self._act_on_list(subsections)
+
+    def p_subsection(self, subsection):
+        '''subsection : HEADERSUBSEC texts
+                      | HEADERSUBSEC texts labeldecls opttexts'''
+        content = subsection[3] if len(subsection) > 3 else []
+        subsection[0] = Subsection(subsection[1], subsection[2], content)
+
+    def p_labeldecls(self, labeldecls):
+        '''labeldecls : labeldecls labeldecl
+                      | labeldecl'''
+        self._act_on_list(labeldecls)
+
+    def p_labeldecl(self, labeldecl):
+        '''labeldecl : LABELDECL'''
+        labeldecl[0] = LabelDecl(labeldecl[1][0], labeldecl[1][1])
 
     def p_rules(self, rules):
         '''rules : rules rule
@@ -117,19 +160,16 @@ class WCAParser(object):
         self._act_on_list(rules)
 
     def p_rule(self, rule):
-        '''rule : indents RULENUMBER STRING
-                | RULENUMBER STRING
-                | GUIDENUMBER LABEL STRING'''
-        if isinstance(rule[1], basestring) and rule[1].endswith('+'):
-            rule[0] = Guideline(rule[1], rule[3], rule[2])
+        '''rule : GUIDELINE
+                | REGULATION'''
+        if len(rule[1]) == 4:
+            # This is a guideline
+            rule[0] = Guideline(rule[1][1], rule[1][2], rule[1][3])
         else:
-            indentsize = 0
-            number = rule[1]
-            text = rule[2]
-            if isinstance(rule[1], list):
-                indentsize = len(rule[1])
-                number = rule[2]
-                text = rule[3]
+            # This is a regulation
+            indentsize = rule[1][0]
+            number = rule[1][1]
+            text = rule[1][2]
             parent = None
 
             # If we just "un"nested, shrink the current rule to our level
@@ -161,53 +201,6 @@ class WCAParser(object):
                 self.currentRule.pop()
             self.currentRule.append(reg)
             self.prevIndent = indentsize
-
-
-
-    def p_indents(self, indents):
-        '''indents : indents INDENT
-                   | INDENT'''
-        self._act_on_list(indents)
-
-    def p_subsections(self, subsections):
-        '''subsections : subsections subsection
-                       | subsection'''
-        self._act_on_list(subsections)
-
-    def p_subsection(self, subsection):
-        '''subsection : H3 STRING paragraphs subsectioncontent'''
-        subsection[0] = Subsection(subsection[2], subsection[3], subsection[4])
-
-    def p_subsectioncontent(self, subsectioncontent):
-        '''subsectioncontent : labeldecls
-                             | empty'''
-        subsectioncontent[0] = subsectioncontent[1]
-
-    def p_labeldecls(self, labeldecls):
-        '''labeldecls : labeldecls labeldecl
-                      | labeldecl'''
-        self._act_on_list(labeldecls)
-
-    def p_labeldecl(self, labeldecl):
-        '''labeldecl : LABELDECL LABEL STRING'''
-        labeldecl[0] = LabelDecl(labeldecl[2], labeldecl[3])
-
-    def p_paragraphs(self, paragraphs):
-        '''paragraphs : paragraphs STRING
-                      | STRING'''
-        self._act_on_list(paragraphs)
-
-    def p_h2(self, header):
-        '''h2 : H2 STRING
-              | H2 TAG STRING
-              | H2 ARTICLEHEADER'''
-        # FIXME: TAG is unused, remove it !
-        header[0] = header[len(header) - 1]
-
-    def p_empty(self, empty):
-        '''empty :
-                 | SEPARATOR'''
-        empty[0] = []
 
     def p_error(self, elem):
         '''Handle syntax error'''

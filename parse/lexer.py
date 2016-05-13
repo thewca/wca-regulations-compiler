@@ -2,6 +2,7 @@
 WCALexer : tokenize a string using lex.
 '''
 import ply.lex as lex
+import re
 
 
 class WCALexer(object):
@@ -11,93 +12,105 @@ class WCALexer(object):
         'TITLE',
         'VERSION',
         'TOC',
-        'H1',
-        'H2',
-        'H3',
         'LABELDECL',
         'ARTICLEHEADER',
-        'TAG',
-        'INDENT',
-        'RULENUMBER',
-        'GUIDENUMBER',
-        'LABEL',
-        'STRING',
-        'SEPARATOR',
+        'HEADERSEC',
+        'HEADERSUBSEC',
+        'TEXT',
+        'PARBREAK',
+        'REGULATION',
+        'GUIDELINE',
         )
 
 
-    t_H1 = r'\#'
-    t_H2 = r'\#\#'
-    t_H3 = r'\#\#\#'
-    t_ignore = '-\t'
+    t_ignore = '\t'
 
     def t_TITLE(self, token):
-        r'<wca-title>'
+        ur'\#\s+<wca-title>(?P<title>.+)\n'
+        token.value = token.lexer.lexmatch.group("title").decode("utf8")
+        token.lexer.lineno += 1
         return token
 
     def t_VERSION(self, token):
-        r'<version>'
+        ur'<version>(?P<version>.+)\n'
+        token.lexer.lineno += 1
+        token.value = token.lexer.lexmatch.group("version").decode("utf8")
         return token
 
     def t_TOC(self, token):
-        r'<table-of-contents>'
+        ur'<table-of-contents>'
+        token.value = token.value.decode("utf8")
         return token
 
     def t_LABELDECL(self, token):
-        r'<label>'
+        ur'-\s<label>\s*\[(?P<label>.+?)\]\s*(?P<text>.+?)\n'
+        label = token.lexer.lexmatch.group("label").decode("utf8")
+        text = token.lexer.lexmatch.group("text").decode("utf8")
+        token.value = (label, text)
+        token.lexer.lineno += 1
         return token
 
     def t_ARTICLEHEADER(self, token):
-        r'<article-(?P<number>[A-Z0-9]+)><(?P<newtag>[a-zA-Z0-9-]+)><(?P<oldtag>[a-zA-Z0-9-]+)>[ ]*(?P<name>[^\:<]+):[ ]+(?P<title>[^<\n]+)'
-        number = token.lexer.lexmatch.group("number")
-        newtag = token.lexer.lexmatch.group("newtag")
-        oldtag = token.lexer.lexmatch.group("oldtag")
-        name = token.lexer.lexmatch.group("name")
-        title = token.lexer.lexmatch.group("title")
-        token.value = (number, newtag, oldtag, name, title)
+        # \xef\xbc\x9a is the "fullwidth colon" used in Japanese for instance
+        ur'\#\#\s+<article-(?P<number>[A-Z0-9]+)><(?P<newtag>[a-zA-Z0-9-]+)><(?P<oldtag>[a-zA-Z0-9-]+)>[ ]*(?P<name>[^\<]+?)(?P<sep>:\s|\xef\xbc\x9a)(?P<title>[^<\n]+)\n'
+        number = token.lexer.lexmatch.group("number").decode("utf8")
+        newtag = token.lexer.lexmatch.group("newtag").decode("utf8")
+        oldtag = token.lexer.lexmatch.group("oldtag").decode("utf8")
+        name = token.lexer.lexmatch.group("name").decode("utf8")
+        sep = token.lexer.lexmatch.group("sep").decode("utf8")
+        title = token.lexer.lexmatch.group("title").decode("utf8")
+        token.value = (number, newtag, oldtag, name, title, sep)
+        token.lexer.lineno += 1
         return token
 
-    def t_TAG(self, token):
-        r'<[a-zA-Z0-9-]+>'
-        # FIXME use named group
-        token.value = token.value[1:-1]
+    def t_HEADERSEC(self, token):
+        ur'\#\#\s+(?P<title>.+?)\n'
+        title = token.lexer.lexmatch.group("title").decode("utf8")
+        token.value = title
+        token.lexer.lineno += 1
         return token
 
-    def t_INDENT(self, token):
-        r'[ ]{4}'
+    # This is not very flexible, but make the yacc very straightforward
+    def t_HEADERSUBSEC(self, token):
+        ur'\#\#\#\s+(?P<title>.+?)\n'
+        title = token.lexer.lexmatch.group("title").decode("utf8")
+        token.value = title
+        token.lexer.lineno += 1
         return token
 
-    def t_RULENUMBER(self, token):
-        r'([a-zA-Z0-9]+)\)'
-        token.value = token.value[:-1]
+    def t_REGULATION(self, token):
+        ur'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+)\)\s*(?P<text>.+?)\n'
+        indents = token.lexer.lexmatch.group("indents")
+        indents = len(indents)/4 if indents else 0
+        reg = token.lexer.lexmatch.group("reg").decode("utf8")
+        text = token.lexer.lexmatch.group("text").decode("utf8")
+        token.value = (indents, reg, text)
+        token.lexer.lineno += 1
         return token
 
-    def t_GUIDENUMBER(self, token):
-        r'([a-zA-Z0-9]+[+]+)\)'
-        token.value = token.value[:-1]
+    def t_GUIDELINE(self, token):
+        ur'-\s(?P<reg>[a-zA-Z0-9]+[+]+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?)\n'
+        reg = token.lexer.lexmatch.group("reg").decode("utf8")
+        text = token.lexer.lexmatch.group("text").decode("utf8")
+        label = token.lexer.lexmatch.group("label").decode("utf8")
+        token.value = (0, reg, text, label)
+        token.lexer.lineno += 1
         return token
 
-    def t_LABEL(self, token):
-        r'\[[^\]]+\](?!\()'
-        # Negative lookahead for a parenthesis (markdown link)
-        # FIXME use named group
-        token.value = token.value[1:-1]
+    def t_TEXT(self, token):
+        ur'(?P<text>[^-<#\n ].+?)(?=\n)'
+        text = token.lexer.lexmatch.group("text").decode("utf8")
+        token.value = text
         return token
 
-    def t_STRING(self, token):
-        r'[^-<#\n ](([^ \n])|([ ](?![ ]{3}))|([ ]{4}\n))+'
-        # This regexp aims at handling the '    \n' being a break
-        # and not a new paragraph
-        # FIXME this could be handle by having a real header rule, and a real paragraph rule
-        # (Like *starting* by a correct char)
+    def t_PARBREAK(self, token):
+        ur'\n{2,}'
+        token.lexer.lineno += len(token.value)
         return token
 
-    def t_SEPARATOR(self, token):
-        # ignore
-        r'[ ]'
 
     def t_newline(self, token):
-        r'\n+'
+        ur'\n+'
         token.lexer.lineno += len(token.value)
 
     def t_error(self, token):
@@ -105,6 +118,6 @@ class WCALexer(object):
         token.lexer.skip(1)
 
     def lex(self):
-        return lex.lex(module=self)
+        return lex.lex(module=self, reflags=re.UNICODE)
 
 

@@ -17,22 +17,22 @@ class Section(object):
         self.title = title
         self.intro = intro
         self.content = content
-        # print "Buildind section " + title
-        # print "Intro size : " + str(len(intro))
-        # print "Content size : " + str(len(content))
-
-    def __str__(self):
-        return self.title
 
 class Article(Section):
-    def __init__(self, title, intro, content, number, newtag, oldtag, name):
+    def __init__(self, title, intro, content, number, newtag, oldtag, name, sep):
         super(Article, self).__init__(title, intro, content)
         self.number = number
         self.name = name
         self.newtag = newtag
         self.oldtag = oldtag
+        # ': ' for all except for japanese where it's '\uFFA1'
+        self.sep = sep
         for regs in content:
             regs.parent = self
+
+    def depth(self):
+        return 1
+
 
 class TableOfContent(Section):
     def __init__(self, title, intro, content):
@@ -42,24 +42,16 @@ class TableOfContent(Section):
     def set_articles(self, articles):
         self.articles = articles
 
-    def __str__(self):
-        retval = self.title + "\n"
-        for a in self.articles:
-            retval += str(a) + "\n"
-        return retval
-
 class Subsection(Section):
     def __init__(self, title, intro, content):
         super(Subsection, self).__init__(title, intro, content)
-        # print "Building Subsection " + title
 
 def split_rule_number(number):
     retval = []
     for elem in number:
         if elem.isdigit():
             if len(retval) > 0 and isinstance(retval[-1], int):
-                retval[-1] *= 10
-                retval[-1] += int(elem)
+                retval[-1] = retval[-1] * 10 + int(elem)
             else:
                 retval.append(int(elem))
         else:
@@ -70,7 +62,8 @@ def split_rule_number(number):
 
 class Rule(object):
     def __init__(self, number, text, parent):
-        self.number = number
+        self.number = number.decode("utf8")
+        self.list_number = split_rule_number(self.number)
         self.text = text
         self.parent = parent
         self.children = []
@@ -78,9 +71,12 @@ class Rule(object):
     def add_child(self, rule):
         self.children.append(rule)
 
+    def depth(self):
+        length = len(self.list_number)
+        return length if self.list_number[-1] != 0 else length - 1
+
     def __lt__(self, other):
-        return (split_rule_number(self.number)
-                < split_rule_number(other.number))
+        return self.list_number < other.list_number
 
     def __hash__(self):
         return hash(self.number)
@@ -90,9 +86,13 @@ class Regulation(Rule):
         super(Regulation, self).__init__(number, text, parent)
 
 class Guideline(Rule):
-    def __init__(self, number, text, label):
+    def __init__(self, number, text, labelname):
         super(Guideline, self).__init__(number, text, None)
-        self.label = label
+        self.labelname = labelname
+
+    @property
+    def regname(self):
+        return self.number.replace('+', '')
 
 class LabelDecl(object):
     def __init__(self, name, text):
@@ -109,9 +109,6 @@ class LabelDecl(object):
 
     def __hash__(self):
         return hash(self.name)
-
-    def __str__(self):
-        return self.name
 
 
 class ASTVisitor(object):
@@ -136,7 +133,7 @@ class ASTVisitor(object):
         retval = [self.visit(i) for i in o]
         return retval.count(False) == 0
 
-    def visitstr(self, s):
+    def visitunicode(self, s):
         return True
 
     def visitLabelDecl(self, label):
@@ -164,12 +161,32 @@ class ASTVisitor(object):
     def visitWCARegulations(self, regs):
         return self.visitWCADocument(regs)
 
+    def visitRule(self, rule):
+        return True
+
     def visitGuideline(self, reg):
+        self.visitRule(reg)
         return True
 
     def visitRegulation(self, reg):
-        return self.visit(reg.children)
+        return self.visitRule(reg) and self.visit(reg.children)
 
     def end_of_document(self, document):
         return True
+
+# FIXME not even sure this utility belongs here
+class Ruleset(ASTVisitor):
+    def __init__(self):
+        super(Ruleset, self).__init__()
+        self.ruleset = set()
+
+    def visitRule(self, rule):
+        self.ruleset.add(rule.number)
+        return True
+
+    def get(self, ast):
+        if self.visit(ast):
+            return self.ruleset
+        else:
+            return None
 
