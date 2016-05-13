@@ -15,7 +15,7 @@ class WCALexer(object):
         'H2',
         'H3',
         'LABELDECL',
-        'ARTICLENUMBER',
+        'ARTICLEHEADER',
         'TAG',
         'INDENT',
         'RULENUMBER',
@@ -47,9 +47,14 @@ class WCALexer(object):
         r'<label>'
         return token
 
-    def t_ARTICLENUMBER(self, token):
-        r'<article-[A-Z0-9]+>'
-        token.value = token.value[9:-1]
+    def t_ARTICLEHEADER(self, token):
+        r'<article-(?P<number>[A-Z0-9]+)><(?P<newtag>[a-zA-Z0-9-]+)><(?P<oldtag>[a-zA-Z0-9-]+)>[ ]*(?P<name>[^\:<]+):[ ]+(?P<title>[^<\n]+)'
+        number = token.lexer.lexmatch.group("number")
+        newtag = token.lexer.lexmatch.group("newtag")
+        oldtag = token.lexer.lexmatch.group("oldtag")
+        name = token.lexer.lexmatch.group("name")
+        title = token.lexer.lexmatch.group("title")
+        token.value = (number, newtag, oldtag, name, title)
         return token
 
     def t_TAG(self, token):
@@ -80,9 +85,11 @@ class WCALexer(object):
         return token
 
     def t_STRING(self, token):
-        r'[^-<#\n ].+\n'
-        token.value = token.value[:-1]
-        token.lexer.lineno += 1
+        r'[^-<#\n ](([^ \n])|([ ](?![ ]{3}))|([ ]{4}\n))+'
+        # This regexp aims at handling the '    \n' being a break
+        # and not a new paragraph
+        # FIXME this could be handle by having a real header rule, and a real paragraph rule
+        # (Like *starting* by a correct char)
         return token
 
     def t_SEPARATOR(self, token):

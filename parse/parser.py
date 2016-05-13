@@ -43,6 +43,8 @@ class WCAParser(object):
         doctype must have WCADocument as a baseclass
         '''
         self.doctype = doctype
+        del self.errors[:]
+        del self.warnings[:]
         ast = self.parser.parse(data, lexer=self.lexer)
         if ast is None:
             self.errors.append("Couldn't build AST.")
@@ -90,8 +92,8 @@ class WCAParser(object):
     def p_section(self, section):
         '''section : h2 sectionintro sectioncontent'''
         if isinstance(section[1], tuple):
-            section[0] = Article(section[1][3], section[2], section[3], section[1][0],
-                                 section[1][1], section[1][2])
+            section[0] = Article(section[1][4], section[2], section[3], section[1][0],
+                                 section[1][1], section[1][2], section[1][3])
         elif not isinstance(section[3], list):
             section[0] = TableOfContent(section[1], section[2], [])
             self.toc = section[0]
@@ -198,11 +200,9 @@ class WCAParser(object):
     def p_h2(self, header):
         '''h2 : H2 STRING
               | H2 TAG STRING
-              | H2 ARTICLENUMBER TAG TAG STRING'''
-        if len(header) < 6:
-            header[0] = header[len(header) - 1]
-        else:
-            header[0] = (header[2], header[3], header[4], header[5])
+              | H2 ARTICLEHEADER'''
+        # FIXME: TAG is unused, remove it !
+        header[0] = header[len(header) - 1]
 
     def p_empty(self, empty):
         '''empty :

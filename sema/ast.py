@@ -25,12 +25,10 @@ class Section(object):
         return self.title
 
 class Article(Section):
-    def __init__(self, title, intro, content, number, newtag, oldtag):
+    def __init__(self, title, intro, content, number, newtag, oldtag, name):
         super(Article, self).__init__(title, intro, content)
-        # print "Building article " + number + "(" + newtag + ", " + oldtag + ")"
-        # for r in content:
-            # print "Reg : " + str(r.number)
         self.number = number
+        self.name = name
         self.newtag = newtag
         self.oldtag = oldtag
         for regs in content:
@@ -39,7 +37,6 @@ class Article(Section):
 class TableOfContent(Section):
     def __init__(self, title, intro, content):
         super(TableOfContent, self).__init__(title, intro, content)
-        # print "Building TOC"
         self.articles = []
 
     def set_articles(self, articles):
