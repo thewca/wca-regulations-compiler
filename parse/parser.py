@@ -43,6 +43,7 @@ class WCAParser(object):
         doctype must have WCADocument as a baseclass
         '''
         self.doctype = doctype
+        self.lexer.lineno = 0
         del self.errors[:]
         del self.warnings[:]
         ast = self.parser.parse(data, lexer=self.lexer)
@@ -55,7 +56,7 @@ class WCAParser(object):
                     self.errors.append("Couldn't visit AST.")
                 self.errors.extend(visitor.errors)
                 self.warnings.extend(visitor.warnings)
-        return (ast, self.errors, self.warnings)
+        return (ast, list(self.errors), list(self.warnings))
 
     def _act_on_list(self, lhs):
         '''

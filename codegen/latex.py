@@ -48,6 +48,9 @@ ENCODING = {"default": [],
                        "\\usepackage{fontspec}",
                        "\\setCJKmainfont{UnBatang}"],
             "russian": ["\\usepackage[utf8]{inputenc}", "\\usepackage[russian]{babel}"],
+            "french": ["\\usepackage[french]{babel}",
+                       "\\usepackage[T1]{fontenc}",
+                       "\\usepackage[utf8]{inputenc}"],
             "utf8": ["\\usepackage[utf8]{inputenc}"]
            }
 
