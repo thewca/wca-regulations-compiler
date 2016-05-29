@@ -46,7 +46,10 @@ class WCAParser(object):
         self.lexer.lineno = 0
         del self.errors[:]
         del self.warnings[:]
+        self.lexer.lexerror = False
         ast = self.parser.parse(data, lexer=self.lexer)
+        if self.lexer.lexerror:
+            ast = None
         if ast is None:
             self.errors.append("Couldn't build AST.")
         else:
@@ -74,15 +77,15 @@ class WCAParser(object):
             lhs[0].append(item)
 
     def p_content(self, content):
-        '''content : TITLE VERSION PARBREAK sections'''
-        content[0] = self.doctype(content[1], content[2], content[4])
+        '''content : TITLE opttexts VERSION opttexts sections'''
+        content[0] = self.doctype(content[1], content[3], content[5])
         self.toc.set_articles([a for a in content[0].sections if isinstance(a, Article)])
 
     def p_texts(self, texts):
         '''texts : textlist'''
         # We want to merge back the text that we had to split in lexer
         # One \n means linebreak, \n\n changes paragraph
-        texts[0] = "\n".join(texts[1])
+        texts[0] = u"\n".join(texts[1])
 
     def p_textlist(self, textlist):
         '''textlist : textlist text

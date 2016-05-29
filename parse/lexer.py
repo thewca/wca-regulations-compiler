@@ -98,7 +98,7 @@ class WCALexer(object):
         return token
 
     def t_TEXT(self, token):
-        ur'(?P<text>[^-<#\n ].+?)(?=\n)'
+        ur'(?P<text>[^<#\n ].+?)(?=\n)'
         text = token.lexer.lexmatch.group("text").decode("utf8")
         token.value = text
         return token
@@ -114,7 +114,8 @@ class WCALexer(object):
         token.lexer.lineno += len(token.value)
 
     def t_error(self, token):
-        print "Illegal character '%s'" % token.value[0]
+        print "Illegal character '%s' at line %s" % (token.value[0], token.lexer.lineno)
+        token.lexer.lexerror = True
         token.lexer.skip(1)
 
     def lex(self):

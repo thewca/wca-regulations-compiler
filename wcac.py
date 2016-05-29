@@ -23,9 +23,13 @@ def parse_regulations_guidelines(reg, guide):
     if reg:
         with open(reg) as reg_file:
             reg_as_str = reg_file.read()
+        # FIXME: do we want to just remove tabs from regs?
+        reg_as_str = reg_as_str.replace("\t", "    ")
     if guide:
         with open(guide) as guide_file:
             guide_as_str = guide_file.read()
+        # FIXME: do we want to just remove tabs from regs?
+        guide_as_str = guide_as_str.replace("\t", "    ")
     parser = WCAParser()
     if reg_as_str:
         astreg, errors_reg, warnings_reg = parser.parse(reg_as_str, WCARegulations)
