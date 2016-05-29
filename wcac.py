@@ -49,6 +49,7 @@ if __name__ == '__main__':
     action_group.add_argument('--diff', help='Diff against the specified file')
     argparser.add_argument('-o', '--output', default='build/', help='Output directory')
     argparser.add_argument('-l', '--language', default='english', help='Language of the file')
+    argparser.add_argument('-v', '--version', default='unknown', help='Git hash corresponding to the files')
     argparser.add_argument('--latex-encoding', default='default', help='Latex encoding to use')
     argparser.add_argument('input', help='Input file or directory')
 
@@ -123,8 +124,8 @@ if __name__ == '__main__':
         if len(errors) + len(warnings) == 0 and astreg and astguide:
             print "Compiled Regulations and Guidelines, generating html..."
             # FIXME: handle translations
-            cg_reg_html = WCARegulationsHtml()
-            cg_guide_html = WCAGuidelinesHtml(astreg)
+            cg_reg_html = WCARegulationsHtml(options.version, options.language)
+            cg_guide_html = WCAGuidelinesHtml(astreg, options.version, options.language)
             reg_html = cg_reg_html.emit(astreg)
             guide_html = cg_guide_html.emit(astguide)
             if reg_html and guide_html:

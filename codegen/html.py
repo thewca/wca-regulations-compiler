@@ -121,8 +121,8 @@ class WCADocumentHtml(CGDocument):
     def visitTableOfContent(self, toc):
         self.codegen += H2.format(anchor="contents",
                                   title=simple_md2html(toc.title))
-        self.codegen += '<p><ul id="table_of_contents">\n'
         retval = super(WCADocumentHtml, self).visit(toc.intro)
+        self.codegen += '<p><ul id="table_of_contents">\n'
         for article in toc.articles:
             anchorname = "article-" + article.number + "-" + article.newtag
             self.codegen += TOC_ELEM.format(name=article.name, anchor=anchorname,
