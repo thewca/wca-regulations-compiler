@@ -58,6 +58,8 @@ ENCODING = {"default": [],
 # We could also call pandoc to do the conversion but it's awfully slow
 
 def anchorizer(text):
+    accepted = re.compile('[\W_ ]+')
+    text = accepted.sub('', text)
     return text.lower().replace(" ", "-")
 
 

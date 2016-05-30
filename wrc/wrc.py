@@ -1,6 +1,9 @@
 import argparse
+import pkg_resources
+import json
 import sys
 import os
+from subprocess import check_call, CalledProcessError
 from parse.parser import WCAParser
 from sema.ast import WCARegulations, WCAGuidelines
 from codegen.html import WCARegulationsHtml, WCAGuidelinesHtml
@@ -8,10 +11,6 @@ from codegen.latex import WCADocumentLatex
 
 REGULATIONS_FILENAME = "wca-regulations.md"
 GUIDELINES_FILENAME = "wca-guidelines.md"
-
-# FIXME: have some config file for the compiler, with default language settings and
-# filenames
-LATEX_OUTPUT_FILENAME = "wca-regulations-and-guidelines.tex"
 
 def parse_regulations_guidelines(reg, guide):
     reg_as_str = None
@@ -44,17 +43,19 @@ def parse_regulations_guidelines(reg, guide):
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
-    action_group.add_argument('--target', default='check', help='Select target output kind',
-                              choices=['latex', 'html', 'check'])
+    action_group.add_argument('--target', help='Select target output kind',
+                              choices=['latex', 'pdf', 'html', 'check'])
     action_group.add_argument('--diff', help='Diff against the specified file')
     argparser.add_argument('-o', '--output', default='build/', help='Output directory')
     argparser.add_argument('-l', '--language', default='english', help='Language of the file')
     argparser.add_argument('-v', '--version', default='unknown', help='Git hash corresponding to the files')
-    argparser.add_argument('--latex-encoding', default='default', help='Latex encoding to use')
     argparser.add_argument('input', help='Input file or directory')
 
 
     options = argparser.parse_args()
+
+    # Get information about languages from the config file (tex encoding, pdf filename, etc)
+    languages_info = json.loads(pkg_resources.resource_string(__name__, "data/languages.json"))
 
     input_regulations = None
     input_guidelines = None
@@ -95,7 +96,7 @@ if __name__ == '__main__':
     if options.diff:
         print "Not supported yet"
         sys.exit(1)
-    if options.target == "latex":
+    if options.target == "latex" or options.target == "pdf":
         if not input_regulations or not input_guidelines:
             print ("Error: both the Regulations and Guidelines are needed"
                    "to generate the Latex file.")
@@ -104,13 +105,42 @@ if __name__ == '__main__':
                                                                           input_guidelines)
         if len(errors) + len(warnings) == 0 and astreg and astguide:
             print "Compiled Regulations and Guidelines, generating Latex..."
-            cglatex = WCADocumentLatex(options.language, options.latex_encoding)
+            cglatex = WCADocumentLatex(options.language,
+                                       languages_info[options.language]["tex_encoding"])
             latex = cglatex.emit(astreg, astguide)
             if latex:
-                output = output_dir + "/" + LATEX_OUTPUT_FILENAME
+                base_filename = languages_info[options.language]["pdf"]
+                output = output_dir + "/" + base_filename + ".tex"
                 with open(output, 'w+') as f:
                     f.write(latex)
                     print "Successfully written the Latex to " + output
+                if options.target == "pdf":
+                    latex_cmd = [languages_info[options.language]["tex_command"]]
+                    latex_cmd.append("-output-directory=" + output_dir)
+                    latex_cmd.append(output_dir + "/" + base_filename + ".tex")
+                    try:
+                        proc = check_call(latex_cmd)
+                        # Do it twice for ToC!
+                        proc = check_call(latex_cmd)
+                        print "Successfully generated pdf file!"
+                        print "Cleaning temporary file..."
+                        ext_list = [".tex", ".aux", ".log"]
+                        for ext in ext_list:
+                            to_remove = output_dir + "/" + base_filename + ext
+                            print "Removing: " + to_remove
+                            os.remove(to_remove)
+                    except CalledProcessError as err:
+                        print "Error while generating pdf:"
+                        print err
+                        # Removing .aux file to avoid build problem
+                        print "Removing .aux file"
+                        os.remove(output_dir + "/" + base_filename + ".aux")
+                        sys.exit(1)
+                    except OSError as err:
+                        print "Error when running command \"" + " ".join(latex_cmd) + "\""
+                        print err
+                        sys.exit(1)
+
             else:
                 print "Error: couldn't emit Latex for Regulations and Guidelines."
                 sys.exit(1)
