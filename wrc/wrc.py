@@ -40,7 +40,81 @@ def parse_regulations_guidelines(reg, guide):
         warnings.extend(warnings_guide)
     return (astreg, astguide, errors, warnings)
 
-if __name__ == '__main__':
+def generate_html(input_regulations, input_guidelines, output_directory, options):
+    astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
+                                                                      input_guidelines)
+    if len(errors) + len(warnings) == 0 and astreg and astguide:
+        print "Compiled Regulations and Guidelines, generating html..."
+        cg_reg_html = WCARegulationsHtml(options.version, options.language)
+        cg_guide_html = WCAGuidelinesHtml(astreg, options.version, options.language)
+        reg_html = cg_reg_html.emit(astreg)
+        guide_html = cg_guide_html.emit(astguide)
+        if reg_html and guide_html:
+            output_reg = output_directory + "/index.html"
+            output_guide = output_directory + "/guidelines.html"
+            with open(output_reg, 'w+') as f:
+                f.write(reg_html)
+                print "Successfully written the Regulations' html to " + output_reg
+            with open(output_guide, 'w+') as f:
+                f.write(guide_html)
+                print "Successfully written the Guidelines' html to " + output_guide
+        else:
+            print "Error: couldn't emit html for Regulations and Guidelines."
+            sys.exit(1)
+    return (errors, warnings)
+
+def generate_latex(input_regulations, input_guidelines, output_directory, options):
+    astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
+                                                                      input_guidelines)
+    if len(errors) + len(warnings) == 0 and astreg and astguide:
+        print "Compiled Regulations and Guidelines, generating Latex..."
+
+        # Get information about languages from the config file (tex encoding, pdf filename, etc)
+        languages_info = json.loads(pkg_resources.resource_string(__name__, "data/languages.json"))
+
+        cglatex = WCADocumentLatex(options.language,
+                                   languages_info[options.language]["tex_encoding"])
+        latex = cglatex.emit(astreg, astguide)
+        if latex:
+            base_filename = languages_info[options.language]["pdf"]
+            output = output_directory + "/" + base_filename + ".tex"
+            with open(output, 'w+') as f:
+                f.write(latex)
+                print "Successfully written the Latex to " + output
+            if options.target == "pdf":
+                latex_cmd = [languages_info[options.language]["tex_command"]]
+                latex_cmd.append("-output-directory=" + output_directory)
+                latex_cmd.append(output_directory + "/" + base_filename + ".tex")
+                try:
+                    proc = check_call(latex_cmd)
+                    # Do it twice for ToC!
+                    proc = check_call(latex_cmd)
+                    print "Successfully generated pdf file!"
+                    print "Cleaning temporary file..."
+                    ext_list = [".tex", ".aux", ".log"]
+                    for ext in ext_list:
+                        to_remove = output_directory + "/" + base_filename + ext
+                        print "Removing: " + to_remove
+                        os.remove(to_remove)
+                except CalledProcessError as err:
+                    print "Error while generating pdf:"
+                    print err
+                    # Removing .aux file to avoid build problem
+                    print "Removing .aux file"
+                    os.remove(output_directory + "/" + base_filename + ".aux")
+                    sys.exit(1)
+                except OSError as err:
+                    print "Error when running command \"" + " ".join(latex_cmd) + "\""
+                    print err
+                    sys.exit(1)
+
+        else:
+            print "Error: couldn't emit Latex for Regulations and Guidelines."
+            sys.exit(1)
+    return (errors, warnings)
+
+
+def run():
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
     action_group.add_argument('--target', help='Select target output kind',
@@ -54,13 +128,8 @@ if __name__ == '__main__':
 
     options = argparser.parse_args()
 
-    # Get information about languages from the config file (tex encoding, pdf filename, etc)
-    languages_info = json.loads(pkg_resources.resource_string(__name__, "data/languages.json"))
-
     input_regulations = None
     input_guidelines = None
-
-    output_dir = None
 
     if os.path.isdir(options.input):
         input_regulations = options.input + "/" + REGULATIONS_FILENAME
@@ -82,7 +151,7 @@ if __name__ == '__main__':
         print "Error: input is not a file or a directory."
         sys.exit(1)
 
-    output_dir = options.output
+    build_dir = options.output
     if not os.path.isdir(options.output):
         print "Error: output is not a directory."
         sys.exit(1)
@@ -92,7 +161,8 @@ if __name__ == '__main__':
 
 
     if not options.diff and not options.target:
-        print "Nothing to do"
+        print "Nothing to do, exiting..."
+        sys.exit(0)
     if options.diff:
         print "Not supported yet"
         sys.exit(1)
@@ -101,85 +171,27 @@ if __name__ == '__main__':
             print ("Error: both the Regulations and Guidelines are needed"
                    "to generate the Latex file.")
             sys.exit(1)
-        astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
-                                                                          input_guidelines)
-        if len(errors) + len(warnings) == 0 and astreg and astguide:
-            print "Compiled Regulations and Guidelines, generating Latex..."
-            cglatex = WCADocumentLatex(options.language,
-                                       languages_info[options.language]["tex_encoding"])
-            latex = cglatex.emit(astreg, astguide)
-            if latex:
-                base_filename = languages_info[options.language]["pdf"]
-                output = output_dir + "/" + base_filename + ".tex"
-                with open(output, 'w+') as f:
-                    f.write(latex)
-                    print "Successfully written the Latex to " + output
-                if options.target == "pdf":
-                    latex_cmd = [languages_info[options.language]["tex_command"]]
-                    latex_cmd.append("-output-directory=" + output_dir)
-                    latex_cmd.append(output_dir + "/" + base_filename + ".tex")
-                    try:
-                        proc = check_call(latex_cmd)
-                        # Do it twice for ToC!
-                        proc = check_call(latex_cmd)
-                        print "Successfully generated pdf file!"
-                        print "Cleaning temporary file..."
-                        ext_list = [".tex", ".aux", ".log"]
-                        for ext in ext_list:
-                            to_remove = output_dir + "/" + base_filename + ext
-                            print "Removing: " + to_remove
-                            os.remove(to_remove)
-                    except CalledProcessError as err:
-                        print "Error while generating pdf:"
-                        print err
-                        # Removing .aux file to avoid build problem
-                        print "Removing .aux file"
-                        os.remove(output_dir + "/" + base_filename + ".aux")
-                        sys.exit(1)
-                    except OSError as err:
-                        print "Error when running command \"" + " ".join(latex_cmd) + "\""
-                        print err
-                        sys.exit(1)
-
-            else:
-                print "Error: couldn't emit Latex for Regulations and Guidelines."
-                sys.exit(1)
+        errors, warnings = generate_latex(input_regulations, input_guidelines, build_dir, options)
     elif options.target == "html":
         if not input_regulations or not input_guidelines:
             print ("Error: both the Regulations and Guidelines are needed"
                    "to generate the Latex file.")
             sys.exit(1)
-        astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
-                                                                          input_guidelines)
-        if len(errors) + len(warnings) == 0 and astreg and astguide:
-            print "Compiled Regulations and Guidelines, generating html..."
-            # FIXME: handle translations
-            cg_reg_html = WCARegulationsHtml(options.version, options.language)
-            cg_guide_html = WCAGuidelinesHtml(astreg, options.version, options.language)
-            reg_html = cg_reg_html.emit(astreg)
-            guide_html = cg_guide_html.emit(astguide)
-            if reg_html and guide_html:
-                output_reg = output_dir + "/index.html"
-                output_guide = output_dir + "/guidelines.html"
-                with open(output_reg, 'w+') as f:
-                    f.write(reg_html)
-                    print "Successfully written the Regulations' html to " + output_reg
-                with open(output_guide, 'w+') as f:
-                    f.write(guide_html)
-                    print "Successfully written the Guidelines' html to " + output_guide
-            else:
-                print "Error: couldn't emit html for Regulations and Guidelines."
-                sys.exit(1)
+        errors, warnings = generate_html(input_regulations, input_guidelines, build_dir, options)
     elif options.target == "check":
         astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
                                                                           input_guidelines)
         if len(errors) + len(warnings) == 0:
             print "All checks passed !"
 
-if len(errors) + len(warnings) != 0:
-    print "Couldn't compile file, the following occured:"
-    for e in errors:
-        print " - Error: " + e
-    for w in warnings:
-        print " - Warning: " + w
-    sys.exit(1)
+    # If some errors or warnings have been detected, output them
+    if len(errors) + len(warnings) != 0:
+        print "Couldn't compile file, the following occured:"
+        for e in errors:
+            print " - Error: " + e
+        for w in warnings:
+            print " - Warning: " + w
+        sys.exit(1)
+
+if __name__ == '__main__':
+    run()
