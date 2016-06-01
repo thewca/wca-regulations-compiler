@@ -13,7 +13,7 @@ class WCAParser(object):
     def __init__(self):
         self.lexer = WCALexer().lex()
         self.tokens = WCALexer.tokens
-        self.parser = yacc.yacc(module=self, debug=0)
+        self.parser = yacc.yacc(module=self, debug=0, write_tables=0)
         self.doctype = WCARegulations
         self.errors = []
         self.warnings = []

@@ -1,2 +1,3 @@
 *.pyc
-parse/parsetab.py
+/dist/
+/*.egg-info

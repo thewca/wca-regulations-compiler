@@ -40,7 +40,8 @@ def parse_regulations_guidelines(reg, guide):
         warnings.extend(warnings_guide)
     return (astreg, astguide, errors, warnings)
 
-def generate_html(input_regulations, input_guidelines, output_directory, options):
+def generate_html(input_regulations, input_guidelines, options):
+    output_directory = options.output
     astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
                                                                       input_guidelines)
     if len(errors) + len(warnings) == 0 and astreg and astguide:
@@ -63,7 +64,8 @@ def generate_html(input_regulations, input_guidelines, output_directory, options
             sys.exit(1)
     return (errors, warnings)
 
-def generate_latex(input_regulations, input_guidelines, output_directory, options):
+def generate_latex(input_regulations, input_guidelines, options):
+    output_directory = options.output
     astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
                                                                       input_guidelines)
     if len(errors) + len(warnings) == 0 and astreg and astguide:
@@ -173,7 +175,10 @@ def files_from_dir(file_or_directory):
         sys.exit(1)
     return (regulations, guidelines)
 
-
+def check_output(directory):
+    if not os.path.isdir(directory):
+        print "Error: output is not a directory."
+        sys.exit(1)
 
 def run():
     argparser = argparse.ArgumentParser()
@@ -192,11 +197,6 @@ def run():
 
     input_regulations, input_guidelines = files_from_dir(options.input)
 
-    build_dir = options.output
-    if not os.path.isdir(options.output):
-        print "Error: output is not a directory."
-        sys.exit(1)
-
     errors = []
     warnings = []
 
@@ -206,17 +206,19 @@ def run():
         sys.exit(0)
 
     if options.target == "latex" or options.target == "pdf":
+        check_output(options.output)
         if not input_regulations or not input_guidelines:
             print ("Error: both the Regulations and Guidelines are needed"
                    "to generate the Latex file.")
             sys.exit(1)
-        errors, warnings = generate_latex(input_regulations, input_guidelines, build_dir, options)
+        errors, warnings = generate_latex(input_regulations, input_guidelines, options)
     elif options.target == "html":
+        check_output(options.output)
         if not input_regulations or not input_guidelines:
             print ("Error: both the Regulations and Guidelines are needed"
                    "to generate the Latex file.")
             sys.exit(1)
-        errors, warnings = generate_html(input_regulations, input_guidelines, build_dir, options)
+        errors, warnings = generate_html(input_regulations, input_guidelines, options)
     elif options.target == "check" or options.diff:
         print "Checking input file(s)..."
         astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
