@@ -1,12 +1,10 @@
-from sema.ast import ASTVisitor, WCAGuidelines, WCARegulations
+from wrc.sema.ast import ASTVisitor, WCAGuidelines, WCARegulations
 
 class SemaAnalysis(ASTVisitor):
     def __init__(self):
         super(SemaAnalysis, self).__init__()
         self.errors = []
         self.warnings = []
-
-# TODO check a regulation against another (ie translation against original) and get the diff
 
 class HierarchyCheck(SemaAnalysis):
     def __init__(self):

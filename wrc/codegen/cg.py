@@ -1,4 +1,4 @@
-from sema.ast import ASTVisitor
+from wrc.sema.ast import ASTVisitor
 
 class CGDocument(ASTVisitor):
     def __init__(self):

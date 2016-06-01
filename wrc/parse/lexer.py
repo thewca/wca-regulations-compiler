@@ -1,8 +1,8 @@
 '''
 WCALexer : tokenize a string using lex.
 '''
-import ply.lex as lex
 import re
+import ply.lex as lex
 
 
 class WCALexer(object):

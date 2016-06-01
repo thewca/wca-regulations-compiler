@@ -1,7 +1,7 @@
 import re
-from sema.ast import WCAGuidelines, WCARegulations, Ruleset,\
+from wrc.sema.ast import WCAGuidelines, WCARegulations, Ruleset,\
                      Rule, LabelDecl
-from codegen.cg import CGDocument
+from wrc.codegen.cg import CGDocument
 
 PDF_LINK = "wca-regulations-and-guidelines.pdf"
 REPO_REG = "https://github.com/cubing/wca-regulations"

@@ -185,6 +185,7 @@ class Ruleset(ASTVisitor):
         return True
 
     def get(self, ast):
+        self.ruleset = set()
         if self.visit(ast):
             return self.ruleset
         else:

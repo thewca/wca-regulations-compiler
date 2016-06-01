@@ -3,10 +3,10 @@ WCAParser : turns an input string into an AST representing the
 (translated) Regulations or Guidelines.
 '''
 import ply.yacc as yacc
-from parse.lexer import WCALexer
-from sema.ast import WCAGuidelines, WCARegulations, Section, Subsection,\
-                     TableOfContent, Regulation, Guideline, Article, LabelDecl
-from sema.check import HierarchyCheck, LabelCheck
+from wrc.parse.lexer import WCALexer
+from wrc.sema.ast import WCAGuidelines, WCARegulations, Section, Subsection,\
+                      TableOfContent, Regulation, Guideline, Article, LabelDecl
+from wrc.sema.check import HierarchyCheck, LabelCheck
 
 class WCAParser(object):
     ''' Main parser class. Uses WCALexer and yacc to build the AST.'''
@@ -17,9 +17,8 @@ class WCAParser(object):
         self.doctype = WCARegulations
         self.errors = []
         self.warnings = []
-        self.sema = { WCARegulations : [HierarchyCheck],
-                      WCAGuidelines : [HierarchyCheck, LabelCheck]
-                    }
+        self.sema = {WCARegulations : [HierarchyCheck],
+                     WCAGuidelines : [HierarchyCheck, LabelCheck]}
         self.toc = None
 
         # Rules hierarchy related variables

@@ -1,7 +1,7 @@
 import re
-from sema.ast import WCADocument, WCARegulations, Ruleset,\
+from wrc.sema.ast import WCADocument, WCARegulations, Ruleset,\
                      Rule, LabelDecl
-from codegen.cg import CGDocument
+from wrc.codegen.cg import CGDocument
 
 PDF_LINK = "wca-regulations-and-guidelines.pdf"
 H2 = u'\\subsection{{{title}}}\\label{{{anchor}}}\n'
@@ -58,7 +58,7 @@ ENCODING = {"default": [],
 # We could also call pandoc to do the conversion but it's awfully slow
 
 def anchorizer(text):
-    accepted = re.compile('[\W_ ]+')
+    accepted = re.compile(r'[\W_ ]+')
     text = accepted.sub('', text)
     return text.lower().replace(" ", "-")
 
