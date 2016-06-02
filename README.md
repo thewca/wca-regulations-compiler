@@ -23,4 +23,5 @@ Here are some sample invocations:
 
 ## Running from the sources
 
-Use `python -m wrc.wrc` from the repository's root instead of `wrc`.
+The compiler is built on top of python lex/yacc implementation `ply`, so you probably need to run `pip install ply` to install it.
+When this is done, you can use `python -m wrc.wrc` from the repository's root instead of `wrc`.
