@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='wrc',
-      version='1.0.0a3',
+      version='1.0.1',
       description='Tool to build and perform checks on WCA Regulations and Guidelines',
       url='http://github.com/viroulep/wca-regulations-compiler',
       author='Philippe Virouleau',
@@ -13,6 +13,6 @@ setup(name='wrc',
           'wrc': ['data/*'],
       },
       entry_points={
-          'console_scripts': ['wrc=wrc.wrc:run'],
+          'console_scripts': ['wrc=wrc.wrc:run', 'wrc-languages=wrc.wrc:languages'],
       },
       zip_safe=False)

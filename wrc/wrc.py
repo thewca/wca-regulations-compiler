@@ -71,8 +71,7 @@ def generate_latex(input_regulations, input_guidelines, options):
     if len(errors) + len(warnings) == 0 and astreg and astguide:
         print "Compiled Regulations and Guidelines, generating Latex..."
 
-        # Get information about languages from the config file (tex encoding, pdf filename, etc)
-        languages_info = json.loads(pkg_resources.resource_string(__name__, "data/languages.json"))
+        languages_info = languages(False)
 
         cglatex = WCADocumentLatex(options.language,
                                    languages_info[options.language]["tex_encoding"])
@@ -89,8 +88,10 @@ def generate_latex(input_regulations, input_guidelines, options):
                 latex_cmd.append(output_directory + "/" + base_filename + ".tex")
                 try:
                     check_call(latex_cmd)
-                    # Do it twice for ToC!
-                    check_call(latex_cmd)
+                    # Do it twice for ToC and ref!
+                    print "Running second pass silently."
+                    devnull = open(os.devnull, 'w')
+                    check_call(latex_cmd, stdout=devnull)
                     print "Successfully generated pdf file!"
                     print "Cleaning temporary file..."
                     for ext in [".tex", ".aux", ".log"]:
@@ -121,10 +122,10 @@ def output_diff(submitted, reference):
     unexpected = set_submitted - set_reference
     missing = set_reference - set_submitted
     if len(unexpected) > 0:
-        print ("/!\\ Warning: These numbers are in the translation file, "
+        print ("/!\\ These numbers are in the translation file, "
                "but not in the reference one: {%s}" % ', '.join(sorted(unexpected)))
     if len(missing) > 0:
-        print ("/!\\ Warning: These numbers are in the reference file, "
+        print ("/!\\ These numbers are in the reference file, "
                "but not in the translation one: {%s}" % ', '.join(sorted(missing)))
     return len(unexpected) + len(missing)
 
@@ -148,6 +149,8 @@ def generate_diff(input_ast_reg, input_ast_guide, options):
             print "No reference to compare the input Guidelines to"
         if diffs == 0:
             print "Input file(s) and reference file(s) matched!"
+        else:
+            errors.append("Translation and reference did not match!")
     return (errors, warnings)
 
 
@@ -180,6 +183,15 @@ def check_output(directory):
         print "Error: output is not a directory."
         sys.exit(1)
 
+def languages(display=True):
+    # Get information about languages from the config file (tex encoding, pdf filename, etc)
+    languages_info = json.loads(pkg_resources.resource_string(__name__, "data/languages.json"))
+
+    if display:
+        print " ".join([key for key in languages_info.keys() if key != "english"])
+        sys.exit(0)
+    return languages_info
+
 def run():
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
@@ -208,15 +220,15 @@ def run():
     if options.target == "latex" or options.target == "pdf":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
-            print ("Error: both the Regulations and Guidelines are needed"
+            print ("Error: both the Regulations and Guidelines are needed "
                    "to generate the Latex file.")
             sys.exit(1)
         errors, warnings = generate_latex(input_regulations, input_guidelines, options)
     elif options.target == "html":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
-            print ("Error: both the Regulations and Guidelines are needed"
-                   "to generate the Latex file.")
+            print ("Error: both the Regulations and Guidelines are needed "
+                   "to generate the html file.")
             sys.exit(1)
         errors, warnings = generate_html(input_regulations, input_guidelines, options)
     elif options.target == "check" or options.diff:

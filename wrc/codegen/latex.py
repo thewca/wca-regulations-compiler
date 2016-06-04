@@ -60,6 +60,8 @@ ENCODING = {"default": [],
 def anchorizer(text):
     accepted = re.compile(r'[\W_ ]+')
     text = accepted.sub('', text)
+    if len(text) == 0:
+        text = "0"
     return text.lower().replace(" ", "-")
 
 
@@ -100,8 +102,8 @@ def anchorlink2latex(text):
     return re.sub(match, replace, text)
 
 def simple_md2latex(text):
-    # We want to escape '#' as it's a macro argument for Latex
-    text = re.sub(r'#', r'\#', text)
+    # We want to escape '#', '{', '}' as they are special chars for Latex
+    text = re.sub(r'([{}#])', r'\\\1', text)
     # LaTeX will render two dashes as an em hyphen.
     # This regex replacement makes sure Megaminx notation is rendered correctly.
     text = re.sub(r'--', r'-{}-', text)
