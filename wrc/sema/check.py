@@ -40,7 +40,7 @@ class HierarchyCheck(SemaAnalysis):
                                (str(reg.__class__.__name__),
                                 reg.number,
                                 reg.parent.number))
-        elif last and reg < last:
+        elif last and reg <= last:
             self.errors.append(self.err_precedence %
                                (str(reg.__class__.__name__),
                                 reg.number,
@@ -74,6 +74,7 @@ class LabelCheck(SemaAnalysis):
             self.labels[reg.labelname] = True
         else:
             self.errors.append(self.err_undefined % (reg.number, reg.labelname))
+        return True
 
     def end_of_document(self, document):
         for key, value in self.labels.iteritems():

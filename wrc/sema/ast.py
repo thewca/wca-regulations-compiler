@@ -78,6 +78,9 @@ class Rule(object):
     def __lt__(self, other):
         return self.list_number < other.list_number
 
+    def __le__(self, other):
+        return not other < self
+
     def __hash__(self):
         return hash(self.number)
 
