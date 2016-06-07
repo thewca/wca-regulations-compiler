@@ -6,8 +6,9 @@ from subprocess import check_call, CalledProcessError
 import pkg_resources
 from .parse.parser import WCAParser
 from .sema.ast import WCARegulations, WCAGuidelines, Ruleset
-from .codegen.html import WCARegulationsHtml, WCAGuidelinesHtml
-from .codegen.latex import WCADocumentLatex
+from .codegen.cghtml import WCARegulationsHtml, WCAGuidelinesHtml
+from .codegen.cglatex import WCADocumentLatex
+from .codegen.cgjson import WCADocumentJSON
 
 REGULATIONS_FILENAME = "wca-regulations.md"
 GUIDELINES_FILENAME = "wca-guidelines.md"
@@ -39,6 +40,24 @@ def parse_regulations_guidelines(reg, guide):
         errors.extend(errors_guide)
         warnings.extend(warnings_guide)
     return (astreg, astguide, errors, warnings)
+
+def generate_json(input_regulations, input_guidelines, options):
+    output_directory = options.output
+    astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
+                                                                      input_guidelines)
+    if len(errors) + len(warnings) == 0 and astreg and astguide:
+        print "Compiled Regulations and Guidelines, generating json..."
+        cg_json = WCADocumentJSON()
+        reg_json = cg_json.emit(astreg, astguide)
+        if reg_json:
+            output_filename = output_directory + "/wca-regulations.json"
+            with open(output_filename, 'w+') as output_file:
+                output_file.write(reg_json)
+                print "Successfully written the json to " + output_filename
+        else:
+            print "Error: couldn't emit json for Regulations and Guidelines."
+            sys.exit(1)
+    return (errors, warnings)
 
 def generate_html(input_regulations, input_guidelines, options):
     output_directory = options.output
@@ -196,7 +215,7 @@ def run():
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
     action_group.add_argument('--target', help='Select target output kind',
-                              choices=['latex', 'pdf', 'html', 'check'])
+                              choices=['latex', 'pdf', 'html', 'check', 'json'])
     action_group.add_argument('--diff', help='Diff against the specified file')
     argparser.add_argument('-o', '--output', default='build/', help='Output directory')
     argparser.add_argument('-l', '--language', default='english', help='Language of the file')
@@ -231,6 +250,13 @@ def run():
                    "to generate the html file.")
             sys.exit(1)
         errors, warnings = generate_html(input_regulations, input_guidelines, options)
+    elif options.target == "json":
+        check_output(options.output)
+        if not input_regulations or not input_guidelines:
+            print ("Error: both the Regulations and Guidelines are needed "
+                   "to generate the json file.")
+            sys.exit(1)
+        errors, warnings = generate_json(input_regulations, input_guidelines, options)
     elif options.target == "check" or options.diff:
         print "Checking input file(s)..."
         astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,

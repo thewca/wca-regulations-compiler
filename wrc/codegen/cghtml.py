@@ -37,10 +37,10 @@ def anchorizer(text):
     return text.lower().replace(" ", "-")
 
 
-def special_links_replace(text):
+def special_links_replace(text, prefix):
     regOrGuide2Slots = r'([A-Za-z0-9]+)' + r'(\+*)'
-    regsURL = "./"
-    guidesURL = "guidelines.html"
+    regsURL = prefix
+    guidesURL = prefix + "guidelines.html"
     reference_list = [(r'regulations:article:' + regOrGuide2Slots, regsURL),
                       (r'regulations:regulation:' + regOrGuide2Slots, regsURL),
                       (r'guidelines:article:' + regOrGuide2Slots, guidesURL),
@@ -64,8 +64,8 @@ def link2html(text):
     replace = r'<a href="\2">\1</a>'
     return re.sub(match, replace, text)
 
-def simple_md2html(text):
-    retval = special_links_replace(text)
+def simple_md2html(text, prefix="./"):
+    retval = special_links_replace(text, prefix)
     # Create a br for every 4 spaces
     retval = re.sub(r'[ ]{4}\n', r'<br />\n', retval)
     # Do we really need this ? Help reduce the diff to only '\n' diff.
