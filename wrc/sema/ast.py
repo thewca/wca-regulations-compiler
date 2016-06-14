@@ -1,3 +1,5 @@
+from functools import total_ordering
+
 class WCADocument(object):
     def __init__(self, title, version, sections):
         self.title = title
@@ -60,6 +62,7 @@ def split_rule_number(number):
             retval.append(0)
     return retval
 
+@total_ordering
 class Rule(object):
     def __init__(self, number, text, parent):
         self.number = number.decode("utf8")
@@ -75,11 +78,11 @@ class Rule(object):
         length = len(self.list_number)
         return length if self.list_number[-1] != 0 else length - 1
 
+    def __eq__(self, other):
+        return self.number == other.number
+
     def __lt__(self, other):
         return self.list_number < other.list_number
-
-    def __le__(self, other):
-        return not other < self
 
     def __hash__(self):
         return hash(self.number)
