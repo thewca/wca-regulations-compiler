@@ -3,7 +3,6 @@ from wrc.sema.ast import WCAGuidelines, WCARegulations, Ruleset,\
                      Rule, LabelDecl
 from wrc.codegen.cg import CGDocument
 
-PDF_LINK = "wca-regulations-and-guidelines.pdf"
 REPO_REG = "https://github.com/cubing/wca-regulations"
 REPO_TRANS = "https://github.com/cubing/wca-regulations-translations"
 BRANCH_REG = "official"
@@ -37,20 +36,18 @@ def anchorizer(text):
     return text.lower().replace(" ", "-")
 
 
-def special_links_replace(text, prefix):
+def special_links_replace(text, urls):
     regOrGuide2Slots = r'([A-Za-z0-9]+)' + r'(\+*)'
-    regsURL = prefix
-    guidesURL = prefix + "guidelines.html"
-    reference_list = [(r'regulations:article:' + regOrGuide2Slots, regsURL),
-                      (r'regulations:regulation:' + regOrGuide2Slots, regsURL),
-                      (r'guidelines:article:' + regOrGuide2Slots, guidesURL),
-                      (r'guidelines:guideline:' + regOrGuide2Slots, guidesURL),
+    reference_list = [(r'regulations:article:' + regOrGuide2Slots, urls['regulations']),
+                      (r'regulations:regulation:' + regOrGuide2Slots, urls['regulations']),
+                      (r'guidelines:article:' + regOrGuide2Slots, urls['guidelines']),
+                      (r'guidelines:guideline:' + regOrGuide2Slots, urls['guidelines']),
                      ]
-    anchor_list = [(r'regulations:contents', regsURL + r'#contents'),
-                   (r'guidelines:contents', guidesURL + r'#contents'),
-                   (r'regulations:top', regsURL),
-                   (r'guidelines:top', guidesURL),
-                   (r'link:pdf', PDF_LINK),
+    anchor_list = [(r'regulations:contents', urls['regulations'] + r'#contents'),
+                   (r'guidelines:contents', urls['guidelines'] + r'#contents'),
+                   (r'regulations:top', urls['regulations']),
+                   (r'guidelines:top', urls['guidelines']),
+                   (r'link:pdf', urls['pdf'] + '.pdf'),
                   ]
     retval = text
     for match, repl in reference_list:
@@ -64,8 +61,8 @@ def link2html(text):
     replace = r'<a href="\2">\1</a>'
     return re.sub(match, replace, text)
 
-def simple_md2html(text, prefix="./"):
-    retval = special_links_replace(text, prefix)
+def simple_md2html(text, urls):
+    retval = special_links_replace(text, urls)
     # Create a br for every 4 spaces
     retval = re.sub(r'[ ]{4}\n', r'<br />\n', retval)
     # Do we really need this ? Help reduce the diff to only '\n' diff.
@@ -74,9 +71,12 @@ def simple_md2html(text, prefix="./"):
 
 
 class WCADocumentHtml(CGDocument):
-    def __init__(self, versionhash, language):
+    def __init__(self, versionhash, language, pdf):
         super(WCADocumentHtml, self).__init__()
         self.codegen = u""
+        self.regset = set()
+        self.urls = {'regulations': './', 'guidelines': './guidelines.html',
+                     'pdf': pdf}
 
         is_translation = (language != "english")
         repo = REPO_TRANS if is_translation else REPO_REG
@@ -86,6 +86,9 @@ class WCADocumentHtml(CGDocument):
 
         self.gitlink = GITLINK.format(repo=repo, branch=branch, identifier=gid,
                                       version=versionhash, gitdir=gdir)
+
+    def md2html(self, text):
+        return simple_md2html(text, self.urls)
 
     def visitWCADocument(self, document):
         # self.codegen += self.str_provide.format(title=document.title)
@@ -115,12 +118,12 @@ class WCADocumentHtml(CGDocument):
 
     def visitunicode(self, u):
         if len(u) > 0:
-            self.codegen += "<p>" + simple_md2html(u) + "</p>\n"
+            self.codegen += "<p>" + self.md2html(u) + "</p>\n"
         return True
 
     def visitTableOfContent(self, toc):
         self.codegen += H2.format(anchor="contents",
-                                  title=simple_md2html(toc.title))
+                                  title=self.md2html(toc.title))
         retval = super(WCADocumentHtml, self).visit(toc.intro)
         self.codegen += '<p><ul id="table_of_contents">\n'
         for article in toc.articles:
@@ -151,26 +154,13 @@ class WCADocumentHtml(CGDocument):
                                   title=subsection.title)
         return super(WCADocumentHtml, self).visitSubsection(subsection)
 
-
-class WCARegulationsHtml(WCADocumentHtml):
-    def __init__(self, versionhash="unknown", language="english"):
-        super(WCARegulationsHtml, self).__init__(versionhash, language)
-        # This CG can only handle regulations
-        self.doctype = WCARegulations
-
     def visitRegulation(self, reg):
         self.codegen += REGULATION.format(i=reg.number,
-                                          text=simple_md2html(reg.text))
-        retval = super(WCARegulationsHtml, self).visitRegulation(reg)
+                                          text=self.md2html(reg.text))
+        retval = super(WCADocumentHtml, self).visitRegulation(reg)
         self.codegen += POSTREG
         return retval
 
-class WCAGuidelinesHtml(WCADocumentHtml):
-    def __init__(self, regulations, versionhash="unknown", language="english"):
-        super(WCAGuidelinesHtml, self).__init__(versionhash, language)
-        # This CG can only handle guidelines
-        self.doctype = WCAGuidelines
-        self.regset = Ruleset().get(regulations)
 
     def visitLabelDecl(self, decl):
         self.codegen += LABEL.format(name=decl.name, text=decl.text)
@@ -185,11 +175,20 @@ class WCAGuidelinesHtml(WCADocumentHtml):
         attr = link_attr if linked else anchor_attr
 
         self.codegen += GUIDELINE.format(i=guide.number,
-                                         text=simple_md2html(guide.text),
+                                         text=self.md2html(guide.text),
                                          label=guide.labelname,
                                          linked=label_class,
                                          attr=attr)
         return True
+
+    def emit(self, ast_reg, ast_guide):
+        self.regset = Ruleset().get(ast_reg)
+        self.visit(ast_reg)
+        codegen_reg = self.codegen
+        self.codegen = u""
+        self.visit(ast_guide)
+        return (codegen_reg, self.codegen)
+
 
 
 

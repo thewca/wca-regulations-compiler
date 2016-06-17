@@ -6,7 +6,8 @@ from subprocess import check_call, CalledProcessError
 import pkg_resources
 from .parse.parser import WCAParser
 from .sema.ast import WCARegulations, WCAGuidelines, Ruleset
-from .codegen.cghtml import WCARegulationsHtml, WCAGuidelinesHtml
+from .codegen.cghtml import WCADocumentHtml
+from .codegen.cghtmltopdf import WCADocumentHtmlToPdf
 from .codegen.cglatex import WCADocumentLatex
 from .codegen.cgjson import WCADocumentJSON
 
@@ -47,7 +48,8 @@ def generate_json(input_regulations, input_guidelines, options):
                                                                       input_guidelines)
     if len(errors) + len(warnings) == 0 and astreg and astguide:
         print "Compiled Regulations and Guidelines, generating json..."
-        cg_json = WCADocumentJSON()
+        languages_info = languages(False)
+        cg_json = WCADocumentJSON(languages_info[options.language]["pdf"])
         reg_json = cg_json.emit(astreg, astguide)
         if reg_json:
             output_filename = output_directory + "/wca-regulations.json"
@@ -59,16 +61,35 @@ def generate_json(input_regulations, input_guidelines, options):
             sys.exit(1)
     return (errors, warnings)
 
+def generate_htmltopdf(input_regulations, input_guidelines, options):
+    output_directory = options.output
+    astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
+                                                                      input_guidelines)
+    if len(errors) + len(warnings) == 0 and astreg and astguide:
+        print "Compiled Regulations and Guidelines, generating htmltopdf..."
+        cg_htmltopdf = WCADocumentHtmlToPdf()
+        reg_htmltopdf = cg_htmltopdf.emit(astreg, astguide)
+        if reg_htmltopdf:
+            output_filename = output_directory + "/regulations.html"
+            with open(output_filename, 'w+') as output_file:
+                output_file.write(reg_htmltopdf)
+                print "Successfully written the htmltopdf to " + output_filename
+        else:
+            print "Error: couldn't emit htmltopdf for Regulations and Guidelines."
+            sys.exit(1)
+    return (errors, warnings)
+
 def generate_html(input_regulations, input_guidelines, options):
     output_directory = options.output
     astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
                                                                       input_guidelines)
     if len(errors) + len(warnings) == 0 and astreg and astguide:
         print "Compiled Regulations and Guidelines, generating html..."
-        cg_reg_html = WCARegulationsHtml(options.version, options.language)
-        cg_guide_html = WCAGuidelinesHtml(astreg, options.version, options.language)
-        reg_html = cg_reg_html.emit(astreg)
-        guide_html = cg_guide_html.emit(astguide)
+        languages_info = languages(False)
+
+        cg_html = WCADocumentHtml(options.version, options.language,
+                                  languages_info[options.language]["pdf"])
+        reg_html, guide_html = cg_html.emit(astreg, astguide)
         if reg_html and guide_html:
             output_reg = output_directory + "/index.html"
             output_guide = output_directory + "/guidelines.html"
@@ -215,7 +236,8 @@ def run():
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
     action_group.add_argument('--target', help='Select target output kind',
-                              choices=['latex', 'pdf', 'html', 'check', 'json'])
+                              choices=['latex', 'pdf', 'html', 'check',
+                                       'json', 'htmltopdf'])
     action_group.add_argument('--diff', help='Diff against the specified file')
     argparser.add_argument('-o', '--output', default='build/', help='Output directory')
     argparser.add_argument('-l', '--language', default='english', help='Language of the file')
@@ -250,6 +272,13 @@ def run():
                    "to generate the html file.")
             sys.exit(1)
         errors, warnings = generate_html(input_regulations, input_guidelines, options)
+    elif options.target == "htmltopdf":
+        check_output(options.output)
+        if not input_regulations or not input_guidelines:
+            print ("Error: both the Regulations and Guidelines are needed "
+                   "to generate the htmltopdf file.")
+            sys.exit(1)
+        errors, warnings = generate_htmltopdf(input_regulations, input_guidelines, options)
     elif options.target == "json":
         check_output(options.output)
         if not input_regulations or not input_guidelines:

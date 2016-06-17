@@ -1,0 +1,8 @@
+
+a {
+    color:red;
+}
+
+.page_break {
+    page-break-after: always;
+}
