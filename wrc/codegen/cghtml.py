@@ -110,8 +110,12 @@ class WCADocumentHtml(CGDocument):
                             + str(self.codegen))
         return retval.count(False) == 0
 
+    def generate_ul(self, a_list):
+        return len(a_list) > 0 and (isinstance(a_list[0], Rule) or
+                                    isinstance(a_list[0], LabelDecl))
+
     def visitlist(self, o):
-        genul = len(o) > 0 and (isinstance(o[0], Rule) or isinstance(o[0], LabelDecl))
+        genul = self.generate_ul(o)
         if genul:
             self.codegen += '\n<ul>\n'
         retval = super(WCADocumentHtml, self).visitlist(o)
@@ -183,7 +187,7 @@ class WCADocumentHtml(CGDocument):
                                               label=guide.labelname,
                                               linked=label_class,
                                               attr=attr)
-        return True
+        return super(WCADocumentHtml, self).visitGuideline(guide)
 
     def emit(self, ast_reg, ast_guide):
         self.regset = Ruleset().get(ast_reg)

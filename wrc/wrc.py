@@ -95,7 +95,7 @@ def generate_htmltopdf(input_regulations, input_guidelines, options):
                 check_call(wkthml_cmd)
                 print "Successfully generated pdf file!"
                 print "Cleaning temporary file (%s)..." % output_filename
-                # os.remove(output_filename)
+                os.remove(output_filename)
             except CalledProcessError as err:
                 print "Error while generating pdf:"
                 print err
