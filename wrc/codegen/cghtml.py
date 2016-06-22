@@ -1,6 +1,5 @@
 import re
-from wrc.sema.ast import WCAGuidelines, WCARegulations, Ruleset,\
-                     Rule, LabelDecl
+from wrc.sema.ast import Ruleset, Rule, LabelDecl, Article
 from wrc.codegen.cg import CGDocument
 
 REPO_REG = "https://github.com/cubing/wca-regulations"
@@ -12,22 +11,11 @@ ID_TRANS = "wca-regulations-translations"
 TOC_ELEM = u'<li>{name}{sep}<a href="#{anchor}">{title}</a></li>\n'
 H2 = u'<h2 id="{anchor}">{title}</h2>\n'
 H3 = u'<h3 id="{anchor}">{title}</h3>\n'
-HARTICLE = (u'<span id="{anchor}"></span><span id="{old}"></span>'
-            '<h2 id="article-{anchor}-{new}"> '
-            '<a href="#article-{anchor}-{new}">{name}</a>{sep}{title}'
-            '</h2>\n')
 PROVIDE = u"<% provide(:title, '{title}') %>\n"
 TITLE = u'<h1>{title}</h1>\n'
 VERSION = u'<div class="version">{version}<br/>{gitlink}</div>\n'
 GITLINK = (u'[<code><a href="{repo}/tree/{branch}/{gitdir}">{identifier}</a>'
            ':<a href="{repo}/commits/{version}">{version}</a></code>]')
-GUIDELINE = (u'<li id="{i}"><a href="#{i}">{i}</a>) '
-             '<span class="{label} label {linked}"><a {attr}>{label}</a></span>'
-             ' {text}</li>\n')
-LABEL = (u'<li><span class="example {name} label label-default">{name}</span> '
-         '{text}</li>\n')
-REGULATION = u'<li id="{i}"><a href="#{i}">{i}</a>) {text}'
-POSTREG = u'</li>\n'
 
 # Some homemade basics non-robust md2html functions
 # We could also call pando to do the conversion but it's awfully slow
@@ -45,8 +33,8 @@ def special_links_replace(text, urls):
                      ]
     anchor_list = [(r'regulations:contents', urls['regulations'] + r'#contents'),
                    (r'guidelines:contents', urls['guidelines'] + r'#contents'),
-                   (r'regulations:top', urls['regulations']),
-                   (r'guidelines:top', urls['guidelines']),
+                   (r'regulations:top', urls['regulations'] + r'#'),
+                   (r'guidelines:top', urls['guidelines'] + r'#'),
                    (r'link:pdf', urls['pdf'] + '.pdf'),
                   ]
     retval = text
@@ -86,6 +74,20 @@ class WCADocumentHtml(CGDocument):
 
         self.gitlink = GITLINK.format(repo=repo, branch=branch, identifier=gid,
                                       version=versionhash, gitdir=gdir)
+        # Overridable attributes
+        self.emit_rails_header = True
+        self.emit_toc = True
+        self.harticle = (u'<div id="{anchor}"><div id="{old}">'
+                          '<h2 id="article-{anchor}-{new}"> '
+                          '<a href="#article-{anchor}-{new}">{name}</a>{sep}{title}'
+                          '</h2></div></div>\n')
+        self.label = (u'<li><span class="{name} label label-default">{name}</span> '
+                       '{text}</li>\n')
+        self.guideline = (u'<li id="{i}"><a href="#{i}">{i}</a>) '
+                           '<span class="{label} label {linked}">'
+                           '<a {attr}>{label}</a></span> {text}</li>\n')
+        self.regulation = u'<li id="{i}"><a href="#{i}">{i}</a>) {text}'
+        self.postreg = u'</li>\n'
 
     def md2html(self, text):
         return simple_md2html(text, self.urls)
@@ -103,14 +105,15 @@ class WCADocumentHtml(CGDocument):
         self.codegen = self.codegen.encode('ascii', 'xmlcharrefreplace')
         # Now codegen is a str
         # Let's provide the title in utf8, Rails should be able to handle it
-        self.codegen = (PROVIDE.format(title=document.title).encode('utf8')
-                        + str(self.codegen))
+        if self.emit_rails_header:
+            self.codegen = (PROVIDE.format(title=document.title).encode('utf8')
+                            + str(self.codegen))
         return retval.count(False) == 0
 
     def visitlist(self, o):
         genul = len(o) > 0 and (isinstance(o[0], Rule) or isinstance(o[0], LabelDecl))
         if genul:
-            self.codegen += "\n<ul>\n"
+            self.codegen += '\n<ul>\n'
         retval = super(WCADocumentHtml, self).visitlist(o)
         if genul:
             self.codegen += "</ul>\n"
@@ -125,12 +128,13 @@ class WCADocumentHtml(CGDocument):
         self.codegen += H2.format(anchor="contents",
                                   title=self.md2html(toc.title))
         retval = super(WCADocumentHtml, self).visit(toc.intro)
-        self.codegen += '<p><ul id="table_of_contents">\n'
-        for article in toc.articles:
-            anchorname = "article-" + article.number + "-" + article.newtag
-            self.codegen += TOC_ELEM.format(name=article.name, anchor=anchorname,
-                                            title=article.title, sep=article.sep)
-        self.codegen += '</ul>\n</p>\n'
+        if self.emit_toc:
+            self.codegen += '<p><ul id="table_of_contents">\n'
+            for article in toc.articles:
+                anchorname = "article-" + article.number + "-" + article.newtag
+                self.codegen += TOC_ELEM.format(name=article.name, anchor=anchorname,
+                                                title=article.title, sep=article.sep)
+            self.codegen += '</ul>\n</p>\n'
         return retval
 
     def visitSection(self, section):
@@ -139,12 +143,12 @@ class WCADocumentHtml(CGDocument):
         return super(WCADocumentHtml, self).visitSection(section)
 
     def visitArticle(self, article):
-        self.codegen += HARTICLE.format(anchor=article.number,
-                                        old=article.oldtag,
-                                        new=article.newtag,
-                                        name=article.name,
-                                        title=article.title,
-                                        sep=article.sep)
+        self.codegen += self.harticle.format(anchor=article.number,
+                                             old=article.oldtag,
+                                             new=article.newtag,
+                                             name=article.name,
+                                             title=article.title,
+                                             sep=article.sep)
         retval = super(WCADocumentHtml, self).visit(article.intro)
         retval = retval and super(WCADocumentHtml, self).visit(article.content)
         return retval
@@ -155,30 +159,30 @@ class WCADocumentHtml(CGDocument):
         return super(WCADocumentHtml, self).visitSubsection(subsection)
 
     def visitRegulation(self, reg):
-        self.codegen += REGULATION.format(i=reg.number,
-                                          text=self.md2html(reg.text))
+        self.codegen += self.regulation.format(i=reg.number,
+                                               text=self.md2html(reg.text))
         retval = super(WCADocumentHtml, self).visitRegulation(reg)
-        self.codegen += POSTREG
+        self.codegen += self.postreg
         return retval
 
 
     def visitLabelDecl(self, decl):
-        self.codegen += LABEL.format(name=decl.name, text=decl.text)
+        self.codegen += self.label.format(name=decl.name, text=decl.text)
         return True
 
     def visitGuideline(self, guide):
         reg = guide.regname
         linked = reg in self.regset
         label_class = "linked" if linked else ""
-        link_attr = 'href="./#%s"' % reg
+        link_attr = 'href="%s#%s"' % (self.urls['regulations'], reg)
         anchor_attr = 'id="#%s"' % guide.number
         attr = link_attr if linked else anchor_attr
 
-        self.codegen += GUIDELINE.format(i=guide.number,
-                                         text=self.md2html(guide.text),
-                                         label=guide.labelname,
-                                         linked=label_class,
-                                         attr=attr)
+        self.codegen += self.guideline.format(i=guide.number,
+                                              text=self.md2html(guide.text),
+                                              label=guide.labelname,
+                                              linked=label_class,
+                                              attr=attr)
         return True
 
     def emit(self, ast_reg, ast_guide):

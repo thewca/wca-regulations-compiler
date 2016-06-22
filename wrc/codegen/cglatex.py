@@ -132,8 +132,6 @@ class WCADocumentLatex(CGDocument):
         WCADocumentLatex.root_pdf = online_url
 
     def emit(self, regulations, guidelines):
-        # FIXME: this override a function with a different number of arguments,
-        # this is bad
         self.regset = Ruleset().get(regulations)
         retval = self.visit(regulations)
         self.codegen += BREAK
@@ -170,7 +168,6 @@ class WCADocumentLatex(CGDocument):
         self.codegen += H2.format(anchor=prefix + "contents",
                                   title=simple_md2latex(title))
         retval = super(WCADocumentLatex, self).visit(toc.intro)
-        # FIXME: do we want to output an actual table of content?
         return retval
 
     def visitSection(self, section):

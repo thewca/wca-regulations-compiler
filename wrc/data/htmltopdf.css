@@ -1,8 +1,104 @@
+/* Try to avoid some annoying page-breaking */
+h1, h2, h3, ul li, p {
+  page-break-inside: avoid !important;
+}
 
-a {
-    color:red;
+h1, h2, h3 {
+  margin:0;
+  padding:0;
+  page-break-after: avoid !important;
 }
 
 .page_break {
-    page-break-after: always;
+  page-break-after: always;
 }
+
+body {
+  text-align:justify;
+  padding: 0;
+  margin: 0;
+  font-family: "Computer Modern";
+  font-size: 11pt;
+}
+
+p, li {
+  line-height: 14.4pt;
+}
+
+.title {
+  width:100%;
+  text-align:center;
+  font-size: 20.74pt;
+  padding-top:25mm;
+  margin-bottom:5mm;
+}
+
+.author {
+  width:100%;
+  text-align:center;
+  font-size: 14.4pt;
+  margin-bottom:1cm;
+}
+
+a {
+  color:black;
+}
+
+h2 a {
+  text-decoration:none;
+}
+
+h1 {
+  font-size: 17.28pt;
+}
+
+h2 {
+  font-size: 14.4pt;
+  padding-top: 0.5em;
+}
+
+h2.article {
+  margin-bottom: -0.4em;
+}
+
+
+h3 {
+  font-size: 12pt;
+}
+
+ul {
+  list-style: disc;
+  padding: 0;
+  margin-left: 2.2em;
+}
+
+ul ul {
+  list-style: none;
+  padding: 0;
+  margin-left: 1em;
+  margin-top: .45em;
+  margin-bottom: .45em;
+}
+
+ul ul li {
+  padding-left: 1em;
+}
+
+ul ul ul li {
+  padding-left: 2em;
+}
+
+ul ul li:before {
+  content: "\2013";
+  display: inline-block;
+  margin-left: -1em; /* same as padding-left set on li */
+  width: 1em; /* same as padding-left set on li */
+}
+
+ul ul ul li:before {
+  content: "\2217";
+  display: inline-block;
+  margin-left: -1em; /* same as padding-left set on li */
+  width: 1em; /* same as padding-left set on li */
+}
+

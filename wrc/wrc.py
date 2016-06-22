@@ -67,13 +67,43 @@ def generate_htmltopdf(input_regulations, input_guidelines, options):
                                                                       input_guidelines)
     if len(errors) + len(warnings) == 0 and astreg and astguide:
         print "Compiled Regulations and Guidelines, generating htmltopdf..."
-        cg_htmltopdf = WCADocumentHtmlToPdf()
-        reg_htmltopdf = cg_htmltopdf.emit(astreg, astguide)
-        if reg_htmltopdf:
+        languages_info = languages(False)
+        pdf_file = languages_info[options.language]["pdf"]
+        cg_htmltopdf = WCADocumentHtmlToPdf(options.version, options.language, pdf_file)
+        reg_html, guide_html = cg_htmltopdf.emit(astreg, astguide)
+        if reg_html and guide_html:
             output_filename = output_directory + "/regulations.html"
-            with open(output_filename, 'w+') as output_file:
-                output_file.write(reg_htmltopdf)
-                print "Successfully written the htmltopdf to " + output_filename
+            try:
+                with open(output_filename, 'w+') as output_file:
+                    output_file.write(reg_html)
+                    output_file.write(guide_html)
+                    print "Successfully written the htmltopdf to " + output_filename
+                wkthml_cmd = ["wkhtmltopdf"]
+                # Basic margins etc
+                wkthml_cmd.extend(["--margin-left", "18"])
+                wkthml_cmd.extend(["--margin-right", "18"])
+                wkthml_cmd.extend(["--page-size", "Letter"])
+                # Header and Footer
+                header_file = pkg_resources.resource_filename("wrc", "data/header.html")
+                footer_file = pkg_resources.resource_filename("wrc", "data/footer.html")
+                wkthml_cmd.extend(["--header-html", header_file])
+                wkthml_cmd.extend(["--footer-html", footer_file])
+                wkthml_cmd.extend(["--header-spacing", "8"])
+                wkthml_cmd.extend(["--footer-spacing", "8"])
+                wkthml_cmd.append(output_filename)
+                wkthml_cmd.append(output_directory + "/" + pdf_file + ".pdf")
+                check_call(wkthml_cmd)
+                print "Successfully generated pdf file!"
+                print "Cleaning temporary file (%s)..." % output_filename
+                # os.remove(output_filename)
+            except CalledProcessError as err:
+                print "Error while generating pdf:"
+                print err
+                sys.exit(1)
+            except OSError as err:
+                print "Error when running command \"" + " ".join(wkthml_cmd) + "\""
+                print err
+                sys.exit(1)
         else:
             print "Error: couldn't emit htmltopdf for Regulations and Guidelines."
             sys.exit(1)
