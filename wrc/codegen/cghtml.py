@@ -44,6 +44,18 @@ def special_links_replace(text, urls):
         retval = re.sub(match, repl, retval)
     return retval
 
+def list2html(text):
+    # Very simple replacement for lists, no nesting, not even two lists in the
+    # same text... (yet sufficient for the current regulations)
+    match = r'- (.+)\n'
+    replace = r'<li>\1</li>\n'
+    text = re.sub(match, replace, text)
+    # Set start of list
+    text = text.replace("<li>", "<ul><li>", 1)
+    # Set end of list
+    tmp = text.rsplit("</li>", 1)
+    return "</li></ul>".join(tmp)
+
 def link2html(text):
     match = r'\[([^\]]+)\]\(([^)]+)\)'
     replace = r'<a href="\2">\1</a>'
@@ -51,6 +63,7 @@ def link2html(text):
 
 def simple_md2html(text, urls):
     retval = special_links_replace(text, urls)
+    retval = list2html(retval)
     # Create a br for every 4 spaces
     retval = re.sub(r'[ ]{4}\n', r'<br />\n', retval)
     # Do we really need this ? Help reduce the diff to only '\n' diff.
