@@ -1,12 +1,18 @@
+''' This module implements several semantic analysis on the Regulations and Guidelines '''
 from wrc.sema.ast import ASTVisitor, WCAGuidelines, WCARegulations
 
 class SemaAnalysis(ASTVisitor):
+    ''' Basic class for a pass '''
     def __init__(self):
         super(SemaAnalysis, self).__init__()
         self.errors = []
         self.warnings = []
 
 class HierarchyCheck(SemaAnalysis):
+    '''
+    Hierarchy checker: check that every regulation is correctly
+    nested in its correct parent, and comes after the previous regulation.
+    '''
     def __init__(self):
         super(HierarchyCheck, self).__init__()
         self.lastrule = [None]
@@ -55,6 +61,10 @@ class HierarchyCheck(SemaAnalysis):
         return True
 
 class LabelCheck(SemaAnalysis):
+    '''
+    Check that every label used in the guidelines is actually defined
+    at the beginning of the document
+    '''
     def __init__(self):
         super(LabelCheck, self).__init__()
         self.labels = dict()

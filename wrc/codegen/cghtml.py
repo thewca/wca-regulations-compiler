@@ -1,5 +1,6 @@
+''' Backend for HTML. '''
 import re
-from wrc.sema.ast import Ruleset, Rule, LabelDecl, Article
+from wrc.sema.ast import Ruleset, Rule, LabelDecl
 from wrc.codegen.cg import CGDocument
 
 REPO_REG = "https://github.com/cubing/wca-regulations"
@@ -18,18 +19,25 @@ GITLINK = (u'[<code><a href="{repo}/tree/{branch}/{gitdir}">{identifier}</a>'
            ':<a href="{repo}/commits/{version}">{version}</a></code>]')
 
 # Some homemade basics non-robust md2html functions
-# We could also call pando to do the conversion but it's awfully slow
+# We could also call pandoc to do the conversion but it's awfully slow, and the
+# md subset implemented right now is sufficient for the Regulations needs
 
 def anchorizer(text):
+    ''' Turn a text into an acceptable anchor name '''
     return text.lower().replace(" ", "-")
 
 
 def special_links_replace(text, urls):
-    regOrGuide2Slots = r'([A-Za-z0-9]+)' + r'(\+*)'
-    reference_list = [(r'regulations:article:' + regOrGuide2Slots, urls['regulations']),
-                      (r'regulations:regulation:' + regOrGuide2Slots, urls['regulations']),
-                      (r'guidelines:article:' + regOrGuide2Slots, urls['guidelines']),
-                      (r'guidelines:guideline:' + regOrGuide2Slots, urls['guidelines']),
+    '''
+    Replace simplified Regulations and Guidelines links into actual links.
+    'urls' dictionary is expected to provide actual links to the targeted
+    Regulations and Guidelines, as well as to the PDF file.
+    '''
+    match_number = r'([A-Za-z0-9]+)' + r'(\+*)'
+    reference_list = [(r'regulations:article:' + match_number, urls['regulations']),
+                      (r'regulations:regulation:' + match_number, urls['regulations']),
+                      (r'guidelines:article:' + match_number, urls['guidelines']),
+                      (r'guidelines:guideline:' + match_number, urls['guidelines']),
                      ]
     anchor_list = [(r'regulations:contents', urls['regulations'] + r'#contents'),
                    (r'guidelines:contents', urls['guidelines'] + r'#contents'),
@@ -45,36 +53,41 @@ def special_links_replace(text, urls):
     return retval
 
 def list2html(text):
-    # Very simple replacement for lists, no nesting, not even two lists in the
-    # same text... (yet sufficient for the current regulations)
+    '''
+    Very simple replacement for lists, no nesting, not even two lists in the
+    same 'text'... (yet sufficient for the current regulations)
+    Assumes list is in a paragraph.
+    '''
     match = r'- (.+)\n'
     replace = r'<li>\1</li>\n'
     text = re.sub(match, replace, text)
     # Set start of list
-    text = text.replace("<li>", "<ul><li>", 1)
+    text = text.replace('<li>', '</p><ul><li>', 1)
     # Set end of list
-    tmp = text.rsplit("</li>", 1)
-    return "</li></ul>".join(tmp)
+    tmp = text.rsplit('</li>', 1)
+    return '</li></ul><p>'.join(tmp)
 
 def link2html(text):
+    ''' Turns md links to html '''
     match = r'\[([^\]]+)\]\(([^)]+)\)'
     replace = r'<a href="\2">\1</a>'
     return re.sub(match, replace, text)
 
 def simple_md2html(text, urls):
+    ''' Convert a text from md to html '''
     retval = special_links_replace(text, urls)
-    retval = list2html(retval)
     # Create a br for every 4 spaces
     retval = re.sub(r'[ ]{4}\n', r'<br />\n', retval)
     # Do we really need this ? Help reduce the diff to only '\n' diff.
     retval = re.sub(r'"', r'&quot;', retval)
+    retval = list2html(retval)
     return link2html(retval)
 
 
 class WCADocumentHtml(CGDocument):
+    ''' Emit html formatted to fit in the WCA website.  '''
     def __init__(self, versionhash, language, pdf):
-        super(WCADocumentHtml, self).__init__()
-        self.codegen = u""
+        super(WCADocumentHtml, self).__init__(unicode)
         self.regset = set()
         self.urls = {'regulations': './', 'guidelines': './guidelines.html',
                      'pdf': pdf}
@@ -91,19 +104,25 @@ class WCADocumentHtml(CGDocument):
         self.emit_rails_header = True
         self.emit_toc = True
         self.harticle = (u'<div id="{anchor}"><div id="{old}">'
-                          '<h2 id="article-{anchor}-{new}"> '
-                          '<a href="#article-{anchor}-{new}">{name}</a>{sep}{title}'
-                          '</h2></div></div>\n')
+                         '<h2 id="article-{anchor}-{new}"> '
+                         '<a href="#article-{anchor}-{new}">{name}</a>{sep}{title}'
+                         '</h2></div></div>\n')
         self.label = (u'<li><span class="{name} label label-default">{name}</span> '
-                       '{text}</li>\n')
+                      '{text}</li>\n')
         self.guideline = (u'<li id="{i}"><a href="#{i}">{i}</a>) '
-                           '<span class="{label} label {linked}">'
-                           '<a {attr}>{label}</a></span> {text}</li>\n')
+                          '<span class="{label} label {linked}">'
+                          '<a {attr}>{label}</a></span> {text}</li>\n')
         self.regulation = u'<li id="{i}"><a href="#{i}">{i}</a>) {text}'
         self.postreg = u'</li>\n'
 
     def md2html(self, text):
+        ''' Use the simple markdown to html converter with our URLs '''
         return simple_md2html(text, self.urls)
+
+    def generate_ul(self, a_list):
+        ''' Determines if we should generate th 'ul' around the list 'a_list' '''
+        return len(a_list) > 0 and (isinstance(a_list[0], Rule) or
+                                    isinstance(a_list[0], LabelDecl))
 
     def visitWCADocument(self, document):
         # self.codegen += self.str_provide.format(title=document.title)
@@ -122,10 +141,6 @@ class WCADocumentHtml(CGDocument):
             self.codegen = (PROVIDE.format(title=document.title).encode('utf8')
                             + str(self.codegen))
         return retval.count(False) == 0
-
-    def generate_ul(self, a_list):
-        return len(a_list) > 0 and (isinstance(a_list[0], Rule) or
-                                    isinstance(a_list[0], LabelDecl))
 
     def visitlist(self, o):
         genul = self.generate_ul(o)
@@ -204,11 +219,7 @@ class WCADocumentHtml(CGDocument):
 
     def emit(self, ast_reg, ast_guide):
         self.regset = Ruleset().get(ast_reg)
-        self.visit(ast_reg)
-        codegen_reg = self.codegen
-        self.codegen = u""
-        self.visit(ast_guide)
-        return (codegen_reg, self.codegen)
+        return super(WCADocumentHtml, self).emit(ast_reg, ast_guide)
 
 
 

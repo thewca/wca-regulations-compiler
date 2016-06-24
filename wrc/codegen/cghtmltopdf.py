@@ -1,6 +1,6 @@
-# import re
-import pkg_resources
+''' Backend for PDF using html. '''
 import os.path
+import pkg_resources
 from wrc.sema.ast import Rule, LabelDecl, Article
 from wrc.codegen.cghtml import WCADocumentHtml
 
@@ -39,6 +39,7 @@ NO_BREAK = '<div class="no_break_inside">'
 
 
 class WCADocumentHtmlToPdf(WCADocumentHtml):
+    ''' Emit html suitable to be printed to PDF using wkhtmltopdf '''
     def __init__(self, versionhash, language, pdf):
         super(WCADocumentHtmlToPdf, self).__init__(versionhash, language, pdf)
         self.urls = {'regulations': '', 'guidelines': '',
@@ -46,53 +47,52 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
         self.emit_rails_header = False
         self.emit_toc = False
         self.harticle = (u'<div id="{anchor}"></div>'
-                          '<h2 id="article-{anchor}-{new}"> '
-                          '{name}{sep}{title}'
-                          '</h2>\n')
+                         '<h2 id="article-{anchor}-{new}"> '
+                         '{name}{sep}{title}'
+                         '</h2>\n')
         self.label = (u'<li>[<span class="{name} label label-default">{name}</span>] '
-                       '{text}</li>\n')
-        self.guideline = (u'<li id="{i}">{i}) '
-                           '<span class="{label} label {linked}">'
-                           '[<a {attr}>{label}</a>]</span> {text}</li>\n')
+                      '{text}</li>\n')
+        self.guideline = (u'<li id="{i}" class="rule">{i}) '
+                          '<span class="{label} label {linked}">'
+                          '[<a {attr}>{label}</a>]</span> {text}</li>\n')
         # Here we intentionally break the hierarchy (ul(li(ul(li))li()) turns to
         # ul(li()ul(li())li()) to be able to "easily" avoid  page breaking
         # inside a 'li' text (it does weird stuff if the whole element has to
         # avoid page-breaking
-        self.regulation = u'<li id="{i}">{i}) {text}</li>\n'
+        self.regulation = u'<li id="{i}" class="rule">{i}) {text}</li>\n'
         self.postreg = u''
         # Internal variable to handle grouping between a h* and its first element
         self.group_closed = True
 
-    def visitArticle(self, article):
-        self.group_closed = False;
-        # This first div will be closed after the first Rule or the first paragraph
-        self.codegen += NO_BREAK
-        return super(WCADocumentHtmlToPdf, self).visitArticle(article)
-
-    def visitSection(self, section):
-        self.group_closed = False;
-        # This first div will be closed after the first paragraph
-        self.codegen += NO_BREAK
-        return super(WCADocumentHtmlToPdf, self).visitSection(section)
-
-    def visitSubsection(self, subsection):
-        if self.group_closed:
-            self.group_closed = False;
-            # This first div will be closed after the first paragraph
-            self.codegen += NO_BREAK
-        return super(WCADocumentHtmlToPdf, self).visitSubsection(subsection)
-
-    def visitTableOfContent(self, toc):
-        self.group_closed = False;
-        return super(WCADocumentHtmlToPdf, self).visitTableOfContent(toc)
-
-    # Here we don't want to generate 'ul' for the root rule, we want to group
-    # the first 'li' with the header to force avoiding page-break
     def generate_ul(self, a_list):
+        # Here we don't want to generate 'ul' for the root rule, we want to group
+        # the first 'li' with the header to force avoiding page-break
         return (len(a_list) > 0 and
                 ((isinstance(a_list[0], Rule) and
                   not isinstance(a_list[0].parent, Article)) or
                  isinstance(a_list[0], LabelDecl)))
+
+    def no_break(self):
+        if self.group_closed:
+            self.group_closed = False
+            # This first div will be closed after the first paragraph
+            self.codegen += NO_BREAK
+
+    def visitArticle(self, article):
+        self.no_break()
+        return super(WCADocumentHtmlToPdf, self).visitArticle(article)
+
+    def visitSection(self, section):
+        self.no_break()
+        return super(WCADocumentHtmlToPdf, self).visitSection(section)
+
+    def visitSubsection(self, subsection):
+        self.no_break()
+        return super(WCADocumentHtmlToPdf, self).visitSubsection(subsection)
+
+    def visitTableOfContent(self, toc):
+        self.no_break()
+        return super(WCADocumentHtmlToPdf, self).visitTableOfContent(toc)
 
     def visitunicode(self, u):
         retval = super(WCADocumentHtmlToPdf, self).visitunicode(u)
@@ -124,7 +124,7 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
                 fontfile = os.path.abspath(fontfile)
             fonts[name] = fontfile
         self.codegen += CSS_FONTS.format(normal=fonts['normal'], bold=fonts['bold'],
-                                         italic=fonts['italic'], bi=fonts['bi']);
+                                         italic=fonts['italic'], bi=fonts['bi'])
         self.codegen += pkg_resources.resource_string("wrc", "data/htmltopdf.css")
         self.codegen += '</style></head><body><div>\n'
         self.codegen += HTML_TITLE.format(title=TITLE, author=AUTHOR)

@@ -22,7 +22,7 @@ class WCAParser(object):
         self.toc = None
 
         # Rules hierarchy related variables
-        self.prevIndent = 0
+        self.prev_indent = 0
         # Contains the hierarchy at the current level, to be able to
         # know one rule's parent rule
         # Example :
@@ -33,7 +33,7 @@ class WCAParser(object):
         # 2 before: (1, 1.2), after: (2)
         # Note: it does *not* check hierarchy, ie "3.2" could be nested in "1"
         # The Sema HierarchyCheck checks this
-        self.currentRule = [None]
+        self.current_rule = [None]
 
 
     def parse(self, data, doctype):
@@ -176,15 +176,15 @@ class WCAParser(object):
             parent = None
 
             # If we just "un"nested, shrink the current rule to our level
-            if self.prevIndent > indentsize:
-                self.currentRule = self.currentRule[0:indentsize+1]
+            if self.prev_indent > indentsize:
+                self.current_rule = self.current_rule[0:indentsize+1]
 
             # We just added a nested level, the parent is the list's last elem
-            if self.prevIndent < indentsize:
-                parent = self.currentRule[-1]
+            if self.prev_indent < indentsize:
+                parent = self.current_rule[-1]
             # Else, if we are nested the parent is the one before the last elem
-            elif len(self.currentRule) > 1:
-                parent = self.currentRule[-2]
+            elif len(self.current_rule) > 1:
+                parent = self.current_rule[-2]
             # Else if we are not nested, then we are a root rule and parent is none
             # (do nothing as parent is initialized to none)
 
@@ -200,10 +200,10 @@ class WCAParser(object):
 
             # Unless we nested, pop and replace the last rule by ourself
             # If we added a nesting level, we just need to add ourself
-            if self.prevIndent >= indentsize:
-                self.currentRule.pop()
-            self.currentRule.append(reg)
-            self.prevIndent = indentsize
+            if self.prev_indent >= indentsize:
+                self.current_rule.pop()
+            self.current_rule.append(reg)
+            self.prev_indent = indentsize
 
     def p_error(self, elem):
         '''Handle syntax error'''

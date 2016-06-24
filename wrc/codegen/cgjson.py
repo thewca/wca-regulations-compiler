@@ -1,4 +1,4 @@
-import re
+''' Backend for JSON.  '''
 import json
 from wrc.sema.ast import WCADocument, Guideline
 from wrc.codegen.cg import CGDocument
@@ -8,9 +8,9 @@ REGULATIONS_ROOT = "https://www.worldcubeassociation.org/regulations/"
 
 
 class WCADocumentJSON(CGDocument):
+    ''' Implement a simple JSON generator from Regulations and Guidelines ASTs. '''
     def __init__(self, pdf):
-        super(WCADocumentJSON, self).__init__()
-        self.reglist = []
+        super(WCADocumentJSON, self).__init__(list)
         # This CG can handle both
         self.doctype = WCADocument
         self.urls = {'regulations': REGULATIONS_ROOT,
@@ -18,8 +18,9 @@ class WCADocumentJSON(CGDocument):
                      'pdf': pdf}
 
     def emit(self, regulations, guidelines):
-        retval = self.visit(regulations) and self.visit(guidelines)
-        return json.dumps(self.reglist)
+        reg_list, guide_list = super(WCADocumentJSON, self).emit(regulations, guidelines)
+        reg_list.extend(guide_list)
+        return json.dumps(reg_list)
 
 
     def visitRule(self, reg):
@@ -27,7 +28,7 @@ class WCADocumentJSON(CGDocument):
         if isinstance(reg, Guideline):
             url += "guidelines.html"
         url += "#" + reg.number
-        self.reglist.append({'class': 'regulation', 'id': reg.number,
+        self.codegen.append({'class': 'regulation', 'id': reg.number,
                              'text': simple_md2html(reg.text, self.urls),
                              'url': url})
         retval = super(WCADocumentJSON, self).visitRule(reg)
