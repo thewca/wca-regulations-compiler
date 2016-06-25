@@ -8,7 +8,6 @@ from .parse.parser import WCAParser
 from .sema.ast import WCARegulations, WCAGuidelines, Ruleset
 from .codegen.cghtml import WCADocumentHtml
 from .codegen.cghtmltopdf import WCADocumentHtmlToPdf
-from .codegen.cglatex import WCADocumentLatex
 from .codegen.cgjson import WCADocumentJSON
 
 REGULATIONS_FILENAME = "wca-regulations.md"
@@ -134,57 +133,6 @@ def generate_html(input_regulations, input_guidelines, options):
             sys.exit(1)
     return (errors, warnings)
 
-def generate_latex(input_regulations, input_guidelines, options):
-    output_directory = options.output
-    astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
-                                                                      input_guidelines)
-    if len(errors) + len(warnings) == 0 and astreg and astguide:
-        print "Compiled Regulations and Guidelines, generating Latex..."
-
-        languages_info = languages(False)
-
-        cglatex = WCADocumentLatex(options.language,
-                                   languages_info[options.language]["tex_encoding"])
-        latex = cglatex.emit(astreg, astguide)
-        if latex:
-            base_filename = languages_info[options.language]["pdf"]
-            output = output_directory + "/" + base_filename + ".tex"
-            with open(output, 'w+') as output_file:
-                output_file.write(latex)
-                print "Successfully written the Latex to " + output
-            if options.target == "pdf":
-                latex_cmd = [languages_info[options.language]["tex_command"]]
-                latex_cmd.append("-output-directory=" + output_directory)
-                latex_cmd.append(output_directory + "/" + base_filename + ".tex")
-                try:
-                    check_call(latex_cmd)
-                    # Do it twice for ToC and ref!
-                    print "Running second pass silently."
-                    devnull = open(os.devnull, 'w')
-                    check_call(latex_cmd, stdout=devnull)
-                    print "Successfully generated pdf file!"
-                    print "Cleaning temporary file..."
-                    for ext in [".tex", ".aux", ".log"]:
-                        to_remove = output_directory + "/" + base_filename + ext
-                        print "Removing: " + to_remove
-                        os.remove(to_remove)
-                except CalledProcessError as err:
-                    print "Error while generating pdf:"
-                    print err
-                    # Removing .aux file to avoid build problem
-                    print "Removing .aux file"
-                    os.remove(output_directory + "/" + base_filename + ".aux")
-                    sys.exit(1)
-                except OSError as err:
-                    print "Error when running command \"" + " ".join(latex_cmd) + "\""
-                    print err
-                    sys.exit(1)
-
-        else:
-            print "Error: couldn't emit Latex for Regulations and Guidelines."
-            sys.exit(1)
-    return (errors, warnings)
-
 def output_diff(submitted, reference):
     rules_visitor = Ruleset()
     set_submitted = rules_visitor.get(submitted)
@@ -267,7 +215,7 @@ def run():
     action_group = argparser.add_mutually_exclusive_group()
     action_group.add_argument('--target', help='Select target output kind',
                               choices=['latex', 'pdf', 'html', 'check',
-                                       'json', 'htmltopdf'])
+                                       'json'])
     action_group.add_argument('--diff', help='Diff against the specified file')
     argparser.add_argument('-o', '--output', default='build/', help='Output directory')
     argparser.add_argument('-l', '--language', default='english', help='Language of the file')
@@ -288,25 +236,18 @@ def run():
         print "Nothing to do, exiting..."
         sys.exit(0)
 
-    if options.target == "latex" or options.target == "pdf":
-        check_output(options.output)
-        if not input_regulations or not input_guidelines:
-            print ("Error: both the Regulations and Guidelines are needed "
-                   "to generate the Latex file.")
-            sys.exit(1)
-        errors, warnings = generate_latex(input_regulations, input_guidelines, options)
-    elif options.target == "html":
+    if options.target == "html":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
             print ("Error: both the Regulations and Guidelines are needed "
                    "to generate the html file.")
             sys.exit(1)
         errors, warnings = generate_html(input_regulations, input_guidelines, options)
-    elif options.target == "htmltopdf":
+    elif options.target == "pdf":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
             print ("Error: both the Regulations and Guidelines are needed "
-                   "to generate the htmltopdf file.")
+                   "to generate the pdf file.")
             sys.exit(1)
         errors, warnings = generate_htmltopdf(input_regulations, input_guidelines, options)
     elif options.target == "json":
