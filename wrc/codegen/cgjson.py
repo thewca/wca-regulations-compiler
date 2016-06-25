@@ -9,7 +9,11 @@ REGULATIONS_ROOT = "https://www.worldcubeassociation.org/regulations/"
 
 class WCADocumentJSON(CGDocument):
     ''' Implement a simple JSON generator from Regulations and Guidelines ASTs. '''
-    def __init__(self, pdf):
+
+    name = "JSON"
+    def __init__(self, versionhash, language, pdf):
+        # We don't need them
+        del versionhash, language
         super(WCADocumentJSON, self).__init__(list)
         # This CG can handle both
         self.doctype = WCADocument
@@ -20,7 +24,7 @@ class WCADocumentJSON(CGDocument):
     def emit(self, regulations, guidelines):
         reg_list, guide_list = super(WCADocumentJSON, self).emit(regulations, guidelines)
         reg_list.extend(guide_list)
-        return json.dumps(reg_list)
+        return json.dumps(reg_list), ""
 
 
     def visitRule(self, reg):

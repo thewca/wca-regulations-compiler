@@ -40,6 +40,7 @@ NO_BREAK = '<div class="no_break_inside">'
 
 class WCADocumentHtmlToPdf(WCADocumentHtml):
     ''' Emit html suitable to be printed to PDF using wkhtmltopdf '''
+    name = "PDF"
     def __init__(self, versionhash, language, pdf):
         super(WCADocumentHtmlToPdf, self).__init__(versionhash, language, pdf)
         self.urls = {'regulations': '', 'guidelines': '',

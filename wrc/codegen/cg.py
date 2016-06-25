@@ -6,6 +6,7 @@ class CGDocument(ASTVisitor):
     Provide a generic class to derive from when implementing a backend.
     Default codegen is a unicode string
     '''
+    name = "undefined"
     def __init__(self, cg_type):
         super(CGDocument, self).__init__()
         self.cg_type = cg_type

@@ -41,97 +41,61 @@ def parse_regulations_guidelines(reg, guide):
         warnings.extend(warnings_guide)
     return (astreg, astguide, errors, warnings)
 
-def generate_json(input_regulations, input_guidelines, options):
-    output_directory = options.output
-    astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
-                                                                      input_guidelines)
-    if len(errors) + len(warnings) == 0 and astreg and astguide:
-        print "Compiled Regulations and Guidelines, generating json..."
-        languages_info = languages(False)
-        cg_json = WCADocumentJSON(languages_info[options.language]["pdf"])
-        reg_json = cg_json.emit(astreg, astguide)
-        if reg_json:
-            output_filename = output_directory + "/wca-regulations.json"
-            with open(output_filename, 'w+') as output_file:
-                output_file.write(reg_json)
-                print "Successfully written the json to " + output_filename
+def output(result_tuple, outputs, output_dir):
+    output_filename = None
+    for content, filename in zip(result_tuple, outputs):
+        mode = 'w'
+        if output_filename == output_dir + filename:
+            mode = 'a'
         else:
-            print "Error: couldn't emit json for Regulations and Guidelines."
-            sys.exit(1)
+            output_filename = output_dir + filename
+        with open(output_filename, mode + '+') as output_file:
+            output_file.write(content)
+            print "Successfully written the content to " + output_filename
+
+def generate(backend_class, inputs, outputs, options, post_process=None):
+    astreg, astguide, errors, warnings = parse_regulations_guidelines(*inputs)
+    if len(errors) + len(warnings) == 0 and astreg and astguide:
+        print ("Compiled Regulations and Guidelines, generating " +
+               backend_class.name + "...")
+        languages_options = languages(False)[options.language]
+        cg_instance = backend_class(options.version, options.language,
+                                    languages_options["pdf"])
+        result_tuple = cg_instance.emit(astreg, astguide)
+        output(result_tuple, outputs, options.output)
+        if post_process:
+            post_process(outputs, options.output, languages_options)
     return (errors, warnings)
 
-def generate_htmltopdf(input_regulations, input_guidelines, options):
-    output_directory = options.output
-    astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
-                                                                      input_guidelines)
-    if len(errors) + len(warnings) == 0 and astreg and astguide:
-        print "Compiled Regulations and Guidelines, generating htmltopdf..."
-        languages_info = languages(False)
-        pdf_file = languages_info[options.language]["pdf"]
-        cg_htmltopdf = WCADocumentHtmlToPdf(options.version, options.language, pdf_file)
-        reg_html, guide_html = cg_htmltopdf.emit(astreg, astguide)
-        if reg_html and guide_html:
-            output_filename = output_directory + "/regulations.html"
-            try:
-                with open(output_filename, 'w+') as output_file:
-                    output_file.write(reg_html)
-                    output_file.write(guide_html)
-                    print "Successfully written the htmltopdf to " + output_filename
-                wkthml_cmd = ["wkhtmltopdf"]
-                # Basic margins etc
-                wkthml_cmd.extend(["--margin-left", "18"])
-                wkthml_cmd.extend(["--margin-right", "18"])
-                wkthml_cmd.extend(["--page-size", "Letter"])
-                # Header and Footer
-                header_file = pkg_resources.resource_filename("wrc", "data/header.html")
-                footer_file = pkg_resources.resource_filename("wrc", "data/footer.html")
-                wkthml_cmd.extend(["--header-html", header_file])
-                wkthml_cmd.extend(["--footer-html", footer_file])
-                wkthml_cmd.extend(["--header-spacing", "8"])
-                wkthml_cmd.extend(["--footer-spacing", "8"])
-                wkthml_cmd.append(output_filename)
-                wkthml_cmd.append(output_directory + "/" + pdf_file + ".pdf")
-                check_call(wkthml_cmd)
-                print "Successfully generated pdf file!"
-                print "Cleaning temporary file (%s)..." % output_filename
-                os.remove(output_filename)
-            except CalledProcessError as err:
-                print "Error while generating pdf:"
-                print err
-                sys.exit(1)
-            except OSError as err:
-                print "Error when running command \"" + " ".join(wkthml_cmd) + "\""
-                print err
-                sys.exit(1)
-        else:
-            print "Error: couldn't emit htmltopdf for Regulations and Guidelines."
-            sys.exit(1)
-    return (errors, warnings)
-
-def generate_html(input_regulations, input_guidelines, options):
-    output_directory = options.output
-    astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
-                                                                      input_guidelines)
-    if len(errors) + len(warnings) == 0 and astreg and astguide:
-        print "Compiled Regulations and Guidelines, generating html..."
-        languages_info = languages(False)
-
-        cg_html = WCADocumentHtml(options.version, options.language,
-                                  languages_info[options.language]["pdf"])
-        reg_html, guide_html = cg_html.emit(astreg, astguide)
-        if reg_html and guide_html:
-            output_reg = output_directory + "/index.html"
-            output_guide = output_directory + "/guidelines.html"
-            with open(output_reg, 'w+') as output_file:
-                output_file.write(reg_html)
-                print "Successfully written the Regulations' html to " + output_reg
-            with open(output_guide, 'w+') as output_file:
-                output_file.write(guide_html)
-                print "Successfully written the Guidelines' html to " + output_guide
-        else:
-            print "Error: couldn't emit html for Regulations and Guidelines."
-            sys.exit(1)
-    return (errors, warnings)
+def html_to_pdf(tmp_filenames, output_directory, lang_options):
+    input_html = output_directory + tmp_filenames[0]
+    wkthml_cmd = ["wkhtmltopdf"]
+    # Basic margins etc
+    wkthml_cmd.extend(["--margin-left", "18"])
+    wkthml_cmd.extend(["--margin-right", "18"])
+    wkthml_cmd.extend(["--page-size", "Letter"])
+    # Header and Footer
+    header_file = pkg_resources.resource_filename("wrc", "data/header.html")
+    footer_file = pkg_resources.resource_filename("wrc", "data/footer.html")
+    wkthml_cmd.extend(["--header-html", header_file])
+    wkthml_cmd.extend(["--footer-html", footer_file])
+    wkthml_cmd.extend(["--header-spacing", "8"])
+    wkthml_cmd.extend(["--footer-spacing", "8"])
+    wkthml_cmd.append(input_html)
+    wkthml_cmd.append(output_directory + "/" + lang_options['pdf'] + '.pdf')
+    try:
+        check_call(wkthml_cmd)
+        print "Successfully generated pdf file!"
+        print "Cleaning temporary file (%s)..." % input_html
+        os.remove(input_html)
+    except CalledProcessError as err:
+        print "Error while generating pdf:"
+        print err
+        sys.exit(1)
+    except OSError as err:
+        print "Error when running command \"" + " ".join(wkthml_cmd) + "\""
+        print err
+        sys.exit(1)
 
 def output_diff(submitted, reference):
     rules_visitor = Ruleset()
@@ -238,25 +202,28 @@ def run():
 
     if options.target == "html":
         check_output(options.output)
-        if not input_regulations or not input_guidelines:
-            print ("Error: both the Regulations and Guidelines are needed "
-                   "to generate the html file.")
-            sys.exit(1)
-        errors, warnings = generate_html(input_regulations, input_guidelines, options)
+        errors, warnings = generate(WCADocumentHtml,
+                                    (input_regulations, input_guidelines),
+                                    ["index.html", "guidelines.html"],
+                                    options)
     elif options.target == "pdf":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
             print ("Error: both the Regulations and Guidelines are needed "
                    "to generate the pdf file.")
             sys.exit(1)
-        errors, warnings = generate_htmltopdf(input_regulations, input_guidelines, options)
+        errors, warnings = generate(WCADocumentHtmlToPdf,
+                                    (input_regulations, input_guidelines),
+                                    ["regulations_tmp.html", "regulations_tmp.html"],
+                                    options,
+                                    html_to_pdf)
+        # errors, warnings = generate_htmltopdf(input_regulations, input_guidelines, options)
     elif options.target == "json":
         check_output(options.output)
-        if not input_regulations or not input_guidelines:
-            print ("Error: both the Regulations and Guidelines are needed "
-                   "to generate the json file.")
-            sys.exit(1)
-        errors, warnings = generate_json(input_regulations, input_guidelines, options)
+        errors, warnings = generate(WCADocumentJSON,
+                                    (input_regulations, input_guidelines),
+                                    ["wca-regulations.json"],
+                                    options)
     elif options.target == "check" or options.diff:
         print "Checking input file(s)..."
         astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
