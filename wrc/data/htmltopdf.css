@@ -21,6 +21,14 @@ body {
     font-size: 11pt;
 }
 
+.title, .author, .header, .footer {
+    font-family: "Computer Modern";
+}
+
+.korean {
+    font-family: "UnBatang";
+}
+
 p, li {
     line-height: 14.4pt;
 }

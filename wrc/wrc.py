@@ -45,10 +45,10 @@ def output(result_tuple, outputs, output_dir):
     output_filename = None
     for content, filename in zip(result_tuple, outputs):
         mode = 'w'
-        if output_filename == output_dir + filename:
+        if output_filename == output_dir + "/" + filename:
             mode = 'a'
         else:
-            output_filename = output_dir + filename
+            output_filename = output_dir + "/" + filename
         with open(output_filename, mode + '+') as output_file:
             output_file.write(content)
             print "Successfully written the content to " + output_filename
@@ -59,7 +59,7 @@ def generate(backend_class, inputs, outputs, options, post_process=None):
         print ("Compiled Regulations and Guidelines, generating " +
                backend_class.name + "...")
         languages_options = languages(False)[options.language]
-        cg_instance = backend_class(options.version, options.language,
+        cg_instance = backend_class(options.git_hash, options.language,
                                     languages_options["pdf"])
         result_tuple = cg_instance.emit(astreg, astguide)
         output(result_tuple, outputs, options.output)
@@ -68,7 +68,7 @@ def generate(backend_class, inputs, outputs, options, post_process=None):
     return (errors, warnings)
 
 def html_to_pdf(tmp_filenames, output_directory, lang_options):
-    input_html = output_directory + tmp_filenames[0]
+    input_html = output_directory + "/" + tmp_filenames[0]
     wkthml_cmd = ["wkhtmltopdf"]
     # Basic margins etc
     wkthml_cmd.extend(["--margin-left", "18"])
@@ -181,24 +181,24 @@ def run():
                               choices=['latex', 'pdf', 'html', 'check',
                                        'json'])
     action_group.add_argument('--diff', help='Diff against the specified file')
+    action_group.add_argument('-v', '--version', action='version',
+                              version=__version__)
     argparser.add_argument('-o', '--output', default='build/', help='Output directory')
     argparser.add_argument('-l', '--language', default='english', help='Language of the file')
-    argparser.add_argument('-v', '--version', default='unknown',
+    argparser.add_argument('-g', '--git-hash', default='unknown',
                            help='Git hash corresponding to the files')
     argparser.add_argument('input', help='Input file or directory')
 
-
     options = argparser.parse_args()
+
+    if not options.diff and not options.target:
+        print "Nothing to do, exiting..."
+        sys.exit(0)
 
     input_regulations, input_guidelines = files_from_dir(options.input)
 
     errors = []
     warnings = []
-
-
-    if not options.diff and not options.target:
-        print "Nothing to do, exiting..."
-        sys.exit(0)
 
     if options.target == "html":
         check_output(options.output)

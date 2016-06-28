@@ -92,6 +92,7 @@ class WCADocumentHtml(CGDocument):
         self.regset = set()
         self.urls = {'regulations': './', 'guidelines': './guidelines.html',
                      'pdf': pdf}
+        self.language = language
 
         is_translation = (language != "english")
         repo = REPO_TRANS if is_translation else REPO_REG
