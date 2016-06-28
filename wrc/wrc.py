@@ -9,6 +9,7 @@ from .sema.ast import WCARegulations, WCAGuidelines, Ruleset
 from .codegen.cghtml import WCADocumentHtml
 from .codegen.cghtmltopdf import WCADocumentHtmlToPdf
 from .codegen.cgjson import WCADocumentJSON
+from .version import __version__
 
 REGULATIONS_FILENAME = "wca-regulations.md"
 GUIDELINES_FILENAME = "wca-guidelines.md"
