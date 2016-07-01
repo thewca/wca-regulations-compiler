@@ -15,8 +15,6 @@ class WCADocumentJSON(CGDocument):
         # We don't need them
         del versionhash, language
         super(WCADocumentJSON, self).__init__(list)
-        # This CG can handle both
-        self.doctype = WCADocument
         self.urls = {'regulations': REGULATIONS_ROOT,
                      'guidelines': REGULATIONS_ROOT + "guidelines.html",
                      'pdf': pdf}
