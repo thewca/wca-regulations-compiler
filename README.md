@@ -12,7 +12,7 @@ Just run `pip install wrc`.
 If you want to build the pdf versions, you need the **patched qt** version of [wkhtmltopdf](http://wkhtmltopdf.org/) in your `$PATH`.
 These stable standalone binaries are available [here](http://wkhtmltopdf.org/downloads.html) for several platforms.
 
-For CJK translations you also need to install some packages providing CJK fonts. The official build uses "UnBatang" for Korean (package `fonts-unfonts-core` or alike), and default fonts provided by `fonts-wqy-microhei` for Japanese and Chinese-s.
+For CJK translations you also need to install some packages providing CJK fonts. The official build uses "UnBatang" for Korean (package `fonts-unfonts-core` or alike), "WenQuanYi Micro Hei" for Chinese (package `fonts-wqy-microhei` or alike), and "IPAX0208PGothic" for Japanese (package `fonts-ipafont` or alike).
 
 ## Run the thing
 

@@ -126,7 +126,7 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
             fonts[name] = fontfile
         self.codegen += CSS_FONTS.format(normal=fonts['normal'], bold=fonts['bold'],
                                          italic=fonts['italic'], bi=fonts['bi'])
-        self.codegen += pkg_resources.resource_string("wrc", "data/htmltopdf.css")
+        self.codegen += pkg_resources.resource_string("wrc", "data/htmltopdf.css").decode("utf-8")
         self.codegen += '</style></head><body class="%s"><div>\n' % self.language
         self.codegen += HTML_TITLE.format(title=TITLE, author=AUTHOR)
         retval = super(WCADocumentHtmlToPdf, self).visitWCARegulations(document)

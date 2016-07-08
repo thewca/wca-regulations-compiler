@@ -29,6 +29,14 @@ body {
     font-family: "UnBatang";
 }
 
+.japanese {
+    font-family: "IPA X0208 Pゴシック","IPAX0208PGothic";
+}
+
+.chinese, .chinese-traditional {
+    font-family: "WenQuanYi Micro Hei";
+}
+
 p, li {
     line-height: 14.4pt;
 }
