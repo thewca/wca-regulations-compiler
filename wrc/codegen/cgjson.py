@@ -31,7 +31,7 @@ class WCADocumentJSON(CGDocument):
             url += "guidelines.html"
         url += "#" + reg.number
         self.codegen.append({'class': 'regulation', 'id': reg.number,
-                             'text': simple_md2html(reg.text, self.urls),
+                             'content_html': simple_md2html(reg.text, self.urls),
                              'url': url})
         retval = super(WCADocumentJSON, self).visitRule(reg)
         return retval
