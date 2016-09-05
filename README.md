@@ -34,3 +34,12 @@ You can also take a look at the travis [script](https://github.com/cubing/wca-re
 
 The compiler is built on top of python lex/yacc implementation `ply`, so you probably need to run `pip install ply` to install it.
 When this is done, you can use `python -m wrc.wrc` from the repository's root instead of `wrc`.
+
+## Deploying to PyPi
+
+(section for maintainers)
+
+- Clean the `dist` and `wrc.egg_info` directories
+- `python setup.py egg_info`
+- `python setup.py sdist bdist_wheel`
+- `twine upload dist/*`
