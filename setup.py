@@ -4,7 +4,7 @@ from wrc.version import __version__
 setup(name='wrc',
       version=__version__,
       description='Tool to build and perform checks on WCA Regulations and Guidelines',
-      url='http://github.com/cubing/wca-regulations-compiler',
+      url='https://github.com/thewca/wca-regulations-compiler',
       author='Philippe Virouleau',
       author_email='philippe.44@gmail.com',
       license='GPLv3',

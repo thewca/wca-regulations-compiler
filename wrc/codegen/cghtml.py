@@ -3,8 +3,8 @@ import re
 from wrc.sema.ast import Ruleset, Rule, LabelDecl
 from wrc.codegen.cg import CGDocument
 
-REPO_REG = "https://github.com/cubing/wca-regulations"
-REPO_TRANS = "https://github.com/cubing/wca-regulations-translations"
+REPO_REG = "https://github.com/thewca/wca-regulations"
+REPO_TRANS = "https://github.com/thewca/wca-regulations-translations"
 BRANCH_REG = "official"
 BRANCH_TRANS = "master"
 ID_REG = "official"

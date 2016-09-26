@@ -27,7 +27,7 @@ Here are some sample invocations:
 - Check that a translation matches exactly the original rules:
 `wrc path/to/wca-regulations-translations/french --diff=path/to/wca-regulations`
 
-You can also take a look at the travis [script](https://github.com/cubing/wca-regulations-translations/blob/master/travis.sh) used in the translations repository.
+You can also take a look at the travis [script](https://github.com/thewca/wca-regulations-translations/blob/master/travis.sh) used in the translations repository.
 
 
 ## Running from the sources
