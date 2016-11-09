@@ -98,7 +98,7 @@ class WCALexer(object):
         return token
 
     def t_TEXT(self, token):
-        ur'(?P<text>[^<#\n ].+?)(?=\n)'
+        ur'(?P<text>[^<#\n ].+?[^ ])(?=\n)'
         text = token.lexer.lexmatch.group("text").decode("utf8")
         token.value = text
         return token
@@ -108,6 +108,11 @@ class WCALexer(object):
         token.lexer.lineno += len(token.value)
         return token
 
+    def t_trailingwhitespace(self, token):
+        ur'.+? \n'
+        print "Error: trailing whitespace at line %s in text '%s'" % (token.lexer.lineno, token.value[:-1])
+        token.lexer.lexerror = True
+        token.lexer.skip(1)
 
     def t_newline(self, token):
         ur'\n+'
