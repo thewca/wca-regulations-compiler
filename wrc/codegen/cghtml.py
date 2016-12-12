@@ -76,8 +76,10 @@ def link2html(text):
 def simple_md2html(text, urls):
     ''' Convert a text from md to html '''
     retval = special_links_replace(text, urls)
-    # Create a br for every 4 spaces
-    retval = re.sub(r'[ ]{4}\n', r'<br />\n', retval)
+    # Create a par break for double newlines
+    retval = re.sub(r'\n\n', r'</p><p>', retval)
+    # Create a visual br for every new line
+    retval = re.sub(r'\n', r'<br />\n', retval)
     # Do we really need this ? Help reduce the diff to only '\n' diff.
     retval = re.sub(r'"', r'&quot;', retval)
     retval = list2html(retval)
