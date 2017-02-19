@@ -43,6 +43,6 @@ When this is done, you can use `python -m wrc.wrc` from the repository's root in
 
 - Bump the version number in `wrc/version.py`
 - Clean the `dist` and `wrc.egg_info` directories
-- `python setup.py egg_info`
-- `python setup.py sdist bdist_wheel`
+- `python2 setup.py egg_info`
+- `python2 setup.py sdist bdist_wheel`
 - `twine upload dist/*`
