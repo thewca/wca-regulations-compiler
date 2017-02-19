@@ -20,6 +20,13 @@
     "guidelines": "Guidelines",
     "pdf": "wca-regulations-and-guidelines"
   },
+  "croatian": {
+    "name": "Croatian",
+    "native": "Hrvatski",
+    "regulations": "Pravilnik",
+    "guidelines": "Smjernice",
+    "pdf": "wca-pravilnik-i-smjernice"
+  },
   "finnish": {
     "name": "Finnish",
     "native": "Suomi",
