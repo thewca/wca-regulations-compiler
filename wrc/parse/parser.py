@@ -78,7 +78,8 @@ class WCAParser(object):
     def p_content(self, content):
         '''content : TITLE opttexts VERSION opttexts sections'''
         content[0] = self.doctype(content[1], content[3], content[5])
-        self.toc.set_articles([a for a in content[0].sections if isinstance(a, Article)])
+        if self.toc:
+            self.toc.set_articles([a for a in content[0].sections if isinstance(a, Article)])
 
     def p_texts(self, texts):
         '''texts : textlist'''
@@ -116,11 +117,22 @@ class WCAParser(object):
         toc[0] = TableOfContent(toc[1], toc[2], [])
         self.toc = toc[0]
 
+    def p_toc_or_regular_error(self, toc):
+        '''toc : HEADERSEC error'''
+        # The p_error function just added a generic error, complete it with
+        # a more precise one
+        self.errors[-1] += ", expected text, subsections or TOC."
+
     def p_article(self, article):
         '''article : ARTICLEHEADER opttexts rules opttexts'''
         article[0] = Article(article[1][4], article[2], article[3], article[1][0],
                              article[1][1], article[1][2], article[1][3], article[1][5])
 
+    def p_article_error(self, article):
+        '''article : ARTICLEHEADER error'''
+        # The p_error function just added a generic error, complete it with
+        # a more precise one
+        self.errors[-1] += ", expected rules or optional texts."
 
     def p_regularsec(self, regularsec):
         '''regularsec : HEADERSEC opttexts subsections'''
@@ -207,5 +219,5 @@ class WCAParser(object):
 
     def p_error(self, elem):
         '''Handle syntax error'''
-        print "Syntax error on line " + str(self.lexer.lineno-1)
-        print "Unexpected " + elem.type
+        self.errors.append("Syntax error on line " + str(self.lexer.lineno)
+                           + ". Got unexpected token " + elem.type)
