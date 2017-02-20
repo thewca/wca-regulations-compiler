@@ -205,7 +205,7 @@ def run():
         check_output(options.output)
         errors, warnings = generate(WCADocumentHtml,
                                     (input_regulations, input_guidelines),
-                                    ["index.html", "guidelines.html"],
+                                    ["index.html.erb", "guidelines.html.erb"],
                                     options)
     elif options.target == "pdf":
         check_output(options.output)
