@@ -79,7 +79,7 @@ class WCALexer(object):
         return token
 
     def t_REGULATION(self, token):
-        ur'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+)\)\s*(?P<text>.+?)\n'
+        ur'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+)\)\s*(?P<text>.+?[^ ])\n'
         indents = token.lexer.lexmatch.group("indents")
         indents = len(indents)/4 if indents else 0
         reg = token.lexer.lexmatch.group("reg").decode("utf8")
@@ -89,7 +89,7 @@ class WCALexer(object):
         return token
 
     def t_GUIDELINE(self, token):
-        ur'-\s(?P<reg>[a-zA-Z0-9]+[+]+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?)\n'
+        ur'-\s(?P<reg>[a-zA-Z0-9]+[+]+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?[^ ])\n'
         reg = token.lexer.lexmatch.group("reg").decode("utf8")
         text = token.lexer.lexmatch.group("text").decode("utf8")
         label = token.lexer.lexmatch.group("label").decode("utf8")
@@ -110,7 +110,7 @@ class WCALexer(object):
 
     def t_trailingwhitespace(self, token):
         ur'.+? \n'
-        print "Error: trailing whitespace at line %s in text '%s'" % (token.lexer.lineno, token.value[:-1])
+        print "Error: trailing whitespace at line %s in text '%s'" % (token.lexer.lineno + 1, token.value[:-1])
         token.lexer.lexerror = True
         token.lexer.skip(1)
 
