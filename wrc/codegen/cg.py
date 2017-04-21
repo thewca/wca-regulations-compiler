@@ -14,8 +14,10 @@ class CGDocument(ASTVisitor):
 
     def emit(self, ast_reg, ast_guide):
         ''' Default emit method: visit both ASTs and return the codegen '''
-        self.visit(ast_reg)
+        if (ast_reg):
+            self.visit(ast_reg)
         codegen_reg = self.codegen
         self.codegen = self.cg_type()
-        self.visit(ast_guide)
+        if (ast_guide):
+            self.visit(ast_guide)
         return (codegen_reg, self.codegen)

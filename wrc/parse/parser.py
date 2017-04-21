@@ -4,8 +4,9 @@ WCAParser : turns an input string into an AST representing the
 '''
 import ply.yacc as yacc
 from wrc.parse.lexer import WCALexer
-from wrc.sema.ast import WCAGuidelines, WCARegulations, Section, Subsection,\
-                      TableOfContent, Regulation, Guideline, Article, LabelDecl
+from wrc.sema.ast import WCAGuidelines, WCARegulations, WCAStates, Section,\
+                         Subsection, TableOfContent, Regulation, Guideline,\
+                         Article, LabelDecl, StatesList, State
 from wrc.sema.check import HierarchyCheck, LabelCheck
 
 class WCAParser(object):
@@ -17,7 +18,8 @@ class WCAParser(object):
         self.doctype = WCARegulations
         self.errors = []
         self.warnings = []
-        self.sema = {WCARegulations : [HierarchyCheck],
+        self.sema = {WCAStates : [],
+                     WCARegulations : [HierarchyCheck],
                      WCAGuidelines : [HierarchyCheck, LabelCheck]}
         self.toc = None
 
@@ -76,7 +78,8 @@ class WCAParser(object):
             lhs[0].append(item)
 
     def p_content(self, content):
-        '''content : TITLE opttexts VERSION opttexts sections'''
+        '''content : TITLE opttexts VERSION opttexts sections
+                   | TITLE STATESTAG VERSION opttexts states_sections'''
         content[0] = self.doctype(content[1], content[3], content[5])
         if self.toc:
             self.toc.set_articles([a for a in content[0].sections if isinstance(a, Article)])
@@ -89,7 +92,7 @@ class WCAParser(object):
 
     def p_textlist(self, textlist):
         '''textlist : textlist text
-                 | text'''
+                    | text'''
         self._act_on_list(textlist)
 
     def p_text(self, text):
@@ -100,6 +103,20 @@ class WCAParser(object):
         text[0] = item if item[0] != "\n" else u""
         if len(text) > 2:
             text[0] += "\n"
+
+    def p_states_sections(self, sections):
+        '''states_sections : states_sections states_section
+                           | states_section'''
+        self._act_on_list(sections)
+
+    def p_states_section(self, body):
+        '''states_section : regularsec
+                          | states_body'''
+        body[0] = body[1]
+
+    def p_stateses_body(self, section):
+        '''states_body : STATESHEADER states'''
+        section[0] = StatesList(section[1], section[2])
 
     def p_sections(self, sections):
         '''sections : sections section
@@ -135,13 +152,18 @@ class WCAParser(object):
         self.errors[-1] += ", expected rules or optional texts."
 
     def p_regularsec(self, regularsec):
-        '''regularsec : HEADERSEC opttexts subsections'''
+        '''regularsec : HEADERSEC opttexts optsubsections'''
         texts = []
         sections = regularsec[2]
         if len(regularsec) > 3:
             texts = regularsec[2]
             sections = regularsec[3]
         regularsec[0] = Section(regularsec[1], texts, sections)
+
+    def p_optsubsections(self, optsubsections):
+        '''optsubsections : subsections
+                          | '''
+        optsubsections[0] = optsubsections[1] if len(optsubsections) > 1 else u""
 
     def p_opttexts(self, opttexts):
         '''opttexts : texts
@@ -216,6 +238,15 @@ class WCAParser(object):
                 self.current_rule.pop()
             self.current_rule.append(reg)
             self.prev_indent = indentsize
+
+    def p_states(self, states):
+        '''states : states state
+                  | state'''
+        self._act_on_list(states)
+
+    def p_state(self, state):
+        '''state : STATE'''
+        state[0] = State(state[1][0], state[1][1], state[1][2])
 
     def p_error(self, elem):
         '''Handle syntax error'''

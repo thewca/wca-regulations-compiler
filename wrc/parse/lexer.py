@@ -11,15 +11,18 @@ class WCALexer(object):
     tokens = (
         'TITLE',
         'VERSION',
+        'STATESTAG',
         'TOC',
         'LABELDECL',
         'ARTICLEHEADER',
+        'STATESHEADER',
         'HEADERSEC',
         'HEADERSUBSEC',
         'TEXT',
         'PARBREAK',
         'REGULATION',
         'GUIDELINE',
+        'STATE',
         )
 
 
@@ -35,6 +38,12 @@ class WCALexer(object):
         ur'<version>(?P<version>.+)\n'
         token.lexer.lineno += 1
         token.value = token.lexer.lexmatch.group("version").decode("utf8")
+        return token
+
+    def t_STATESTAG(self, token):
+        ur'<wca-states>\n'
+        token.lexer.lineno += 1
+        token.value = None
         return token
 
     def t_TOC(self, token):
@@ -60,6 +69,13 @@ class WCALexer(object):
         sep = token.lexer.lexmatch.group("sep").decode("utf8")
         title = token.lexer.lexmatch.group("title").decode("utf8")
         token.value = (number, newtag, oldtag, name, title, sep)
+        token.lexer.lineno += 1
+        return token
+
+    def t_STATESHEADER(self, token):
+        ur'\#\#\s+<states-list>(?P<title>[^<\n]+)\n'
+        title = token.lexer.lexmatch.group("title").decode("utf8")
+        token.value = title
         token.lexer.lineno += 1
         return token
 
@@ -97,6 +113,15 @@ class WCALexer(object):
         token.lexer.lineno += 1
         return token
 
+    def t_STATE(self, token):
+        ur'-\s\((?P<state>[A-Z]{2}):(?P<continent>[A-Z]{2})\)\s(?P<name>[A-Z].+?[^ ])\n'
+        state = token.lexer.lexmatch.group("state").decode("utf8")
+        continent = token.lexer.lexmatch.group("continent").decode("utf8")
+        name = token.lexer.lexmatch.group("name").decode("utf8")
+        token.value = (state, continent, name)
+        token.lexer.lineno += 1
+        return token
+
     def t_TEXT(self, token):
         ur'(?P<text>[^<#\n ].+?[^ ])(?=\n)'
         text = token.lexer.lexmatch.group("text").decode("utf8")
@@ -124,6 +149,6 @@ class WCALexer(object):
         token.lexer.skip(1)
 
     def lex(self):
-        return lex.lex(module=self, reflags=re.UNICODE)
+        return lex.lex(module=self, reflags=re.UNICODE, debug=0)
 
 

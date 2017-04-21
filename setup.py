@@ -14,6 +14,6 @@ setup(name='wrc',
           'wrc': ['data/*'],
       },
       entry_points={
-          'console_scripts': ['wrc=wrc.wrc:run', 'wrc-languages=wrc.wrc:languages'],
+          'console_scripts': ['wrc=wrc.wrc:run', 'wrc-languages=wrc.wrc:languages', 'wrc-states=wrc.wrc:states'],
       },
       zip_safe=False)

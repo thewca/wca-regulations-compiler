@@ -1,6 +1,6 @@
 ''' Backend for HTML. '''
 import re
-from wrc.sema.ast import Ruleset, Rule, LabelDecl
+from wrc.sema.ast import Ruleset, Rule, LabelDecl, State
 from wrc.codegen.cg import CGDocument
 
 REPO_REG = "https://github.com/thewca/wca-regulations"
@@ -10,6 +10,7 @@ BRANCH_TRANS = "master"
 ID_REG = "official"
 ID_TRANS = "wca-regulations-translations"
 TOC_ELEM = u'<li>{name}{sep}<a href="#{anchor}">{title}</a></li>\n'
+STATE = u'<li>{name}</li>\n'
 H2 = u'<h2 id="{anchor}">{title}</h2>\n'
 H3 = u'<h3 id="{anchor}">{title}</h3>\n'
 PROVIDE = u"<% provide(:title, '{title}') %>\n"
@@ -126,10 +127,10 @@ class WCADocumentHtml(CGDocument):
     def generate_ul(self, a_list):
         ''' Determines if we should generate th 'ul' around the list 'a_list' '''
         return len(a_list) > 0 and (isinstance(a_list[0], Rule) or
-                                    isinstance(a_list[0], LabelDecl))
+                                    isinstance(a_list[0], LabelDecl) or
+                                    isinstance(a_list[0], State))
 
     def visitWCADocument(self, document):
-        # self.codegen += self.str_provide.format(title=document.title)
         self.codegen += '<div class="container">'
         self.codegen += TITLE.format(title=document.title)
         self.codegen += VERSION.format(version=document.version,
@@ -178,6 +179,11 @@ class WCADocumentHtml(CGDocument):
                                   title=section.title)
         return super(WCADocumentHtml, self).visitSection(section)
 
+    def visitStatesList(self, section):
+        self.codegen += H2.format(anchor=anchorizer(section.title),
+                                  title=section.title)
+        return super(WCADocumentHtml, self).visitStatesList(section)
+
     def visitArticle(self, article):
         self.codegen += self.harticle.format(anchor=article.number,
                                              old=article.oldtag,
@@ -193,6 +199,10 @@ class WCADocumentHtml(CGDocument):
         self.codegen += H3.format(anchor=anchorizer(subsection.title),
                                   title=subsection.title)
         return super(WCADocumentHtml, self).visitSubsection(subsection)
+
+    def visitState(self, state):
+        self.codegen += STATE.format(name=state.name)
+        return super(WCADocumentHtml, self).visitState(state)
 
     def visitRegulation(self, reg):
         self.codegen += self.regulation.format(i=reg.number,
