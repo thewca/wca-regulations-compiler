@@ -19,9 +19,24 @@ class WCADocumentJSON(CGDocument):
                      'guidelines': REGULATIONS_ROOT + "guidelines.html",
                      'pdf': pdf}
 
+    def visitWCAStates(self, document):
+        self.state_lists = []
+        retval = super(WCADocumentJSON, self).visitWCAStates(document)
+        self.codegen = {'title': document.title, 'version': document.version,
+                        'text': document.text, 'states_lists': self.state_lists}
+        return retval
+
+    def visitStatesList(self, states_list):
+        self.current_states = []
+        retval = super(WCADocumentJSON, self).visitStatesList(states_list)
+        self.state_lists.append({'title': states_list.title,
+                                 'states': self.current_states})
+        return retval
+
     def emit(self, regulations, guidelines):
         reg_list, guide_list = super(WCADocumentJSON, self).emit(regulations, guidelines)
-        reg_list.extend(guide_list)
+        if len(guide_list) > 0:
+            reg_list.extend(guide_list)
         return json.dumps(reg_list), ""
 
 
@@ -35,4 +50,11 @@ class WCADocumentJSON(CGDocument):
                              'url': url})
         retval = super(WCADocumentJSON, self).visitRule(reg)
         return retval
+
+    def visitState(self, state):
+        self.current_states.append({'class': 'state', 'iso2': state.state_id,
+                                    'continent_id': state.continent_id,
+                                    'name': state.name, 'info': state.info,
+                                    'id': state.friendly_id})
+        return True
 

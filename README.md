@@ -36,7 +36,7 @@ Note: the whole project is written using python 2.7, if something goes wrong it'
 
 The compiler is built on top of python lex/yacc implementation `ply`, so you probably need to run `pip install ply` to install it.
 When this is done, you can use `python -m wrc.wrc` from the repository's root instead of `wrc`.
-If you want to use `wrc-countries` from the source, an easy way to do this is to run `python -c "from wrc.wrc import countries; countries()"`
+If you want to use `wrc-states` from the source, an easy way to do this is to run `python -c "from wrc.wrc import states; states()"`
 
 ## Deploying to PyPi
 

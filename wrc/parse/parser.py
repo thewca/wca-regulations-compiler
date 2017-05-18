@@ -80,7 +80,7 @@ class WCAParser(object):
     def p_content(self, content):
         '''content : TITLE opttexts VERSION opttexts sections
                    | TITLE STATESTAG VERSION opttexts states_sections'''
-        content[0] = self.doctype(content[1], content[3], content[5])
+        content[0] = self.doctype(content[1], content[3], content[4], content[5])
         if self.toc:
             self.toc.set_articles([a for a in content[0].sections if isinstance(a, Article)])
 
@@ -114,7 +114,7 @@ class WCAParser(object):
                           | states_body'''
         body[0] = body[1]
 
-    def p_stateses_body(self, section):
+    def p_states_body(self, section):
         '''states_body : STATESHEADER states'''
         section[0] = StatesList(section[1], section[2])
 
@@ -245,8 +245,8 @@ class WCAParser(object):
         self._act_on_list(states)
 
     def p_state(self, state):
-        '''state : STATE'''
-        state[0] = State(state[1][0], state[1][1], state[1][2])
+        '''state : STATE opttexts'''
+        state[0] = State(state[1][0], state[1][1], state[1][2], state[1][3], state[2])
 
     def p_error(self, elem):
         '''Handle syntax error'''

@@ -9,7 +9,6 @@ from .sema.ast import WCARegulations, WCAGuidelines, WCAStates, Ruleset
 from .codegen.cghtml import WCADocumentHtml
 from .codegen.cghtmltopdf import WCADocumentHtmlToPdf
 from .codegen.cgjson import WCADocumentJSON
-from .codegen.cgsql import WCADocumentSQL
 from .version import __version__
 
 REGULATIONS_FILENAME = "wca-regulations.md"
@@ -215,23 +214,16 @@ def states():
     argparser = argparse.ArgumentParser()
     build_common_option(argparser)
     argparser.add_argument('--target', help='Select target output kind',
-                           choices=['check', 'html', 'sql'])
+                           choices=['check', 'json'])
     options = argparser.parse_args()
 
     check_states_file(options.input)
 
-    if options.target == "html":
+    if options.target == "json":
         check_output(options.output)
-        errors, warnings = generate(WCADocumentHtml,
+        errors, warnings = generate(WCADocumentJSON,
                                     [options.input],
-                                    ["states.html.erb"],
-                                    options,
-                                    parse_states)
-    elif options.target == "sql":
-        check_output(options.output)
-        errors, warnings = generate(WCADocumentSQL,
-                                    [options.input],
-                                    ["countries.seeds.rb"],
+                                    ["states.json"],
                                     options,
                                     parse_states)
     elif options.target == "check":

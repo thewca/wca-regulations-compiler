@@ -1,22 +1,23 @@
 from functools import total_ordering
 
 class WCADocument(object):
-    def __init__(self, title, version, sections):
+    def __init__(self, title, version, text, sections):
         self.title = title
         self.sections = sections
+        self.text = text
         self.version = version
 
 class WCARegulations(WCADocument):
-    def __init__(self, title, version, sections):
-        super(WCARegulations, self).__init__(title, version, sections)
+    def __init__(self, title, version, text, sections):
+        super(WCARegulations, self).__init__(title, version, text, sections)
 
 class WCAGuidelines(WCADocument):
-    def __init__(self, title, version, sections):
-        super(WCAGuidelines, self).__init__(title, version, sections)
+    def __init__(self, title, version, text, sections):
+        super(WCAGuidelines, self).__init__(title, version, text, sections)
 
 class WCAStates(WCADocument):
-    def __init__(self, title, version, sections):
-        super(WCAStates, self).__init__(title, version, sections)
+    def __init__(self, title, version, text, sections):
+        super(WCAStates, self).__init__(title, version, text, sections)
 
 class Section(object):
     def __init__(self, title, intro, content):
@@ -109,10 +110,12 @@ class Guideline(Rule):
         return self.number.replace('+', '')
 
 class State(object):
-    def __init__(self, state_id, continent_id, name):
+    def __init__(self, state_id, continent_id, name, friendly_id, info):
         self.state_id = state_id
         self.continent_id = continent_id
         self.name = name
+        self.friendly_id = friendly_id
+        self.info = info
 
 class LabelDecl(object):
     def __init__(self, name, text):

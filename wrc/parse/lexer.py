@@ -3,6 +3,7 @@ WCALexer : tokenize a string using lex.
 '''
 import re
 import ply.lex as lex
+from unidecode import unidecode
 
 
 class WCALexer(object):
@@ -114,11 +115,16 @@ class WCALexer(object):
         return token
 
     def t_STATE(self, token):
-        ur'-\s\((?P<state>[A-Z]{2}):(?P<continent>[A-Z]{2})\)\s(?P<name>[A-Z].+?[^ ])\n'
+        ur'-\s\((?P<state>[A-Z]{2}):(?P<continent>[_A-Za-z ]+)(:(?P<friendly_id>[A-Za-z_]+))?\)\s(?P<name>[A-Z].+?[^ ])\n'
         state = token.lexer.lexmatch.group("state").decode("utf8")
         continent = token.lexer.lexmatch.group("continent").decode("utf8")
         name = token.lexer.lexmatch.group("name").decode("utf8")
-        token.value = (state, continent, name)
+        friendly_id = token.lexer.lexmatch.group("friendly_id")
+        if friendly_id:
+            friendly_id = friendly_id.decode("utf8")
+        else:
+            friendly_id = unidecode(name).replace("'", "_")
+        token.value = (state, continent, name, friendly_id)
         token.lexer.lineno += 1
         return token
 
