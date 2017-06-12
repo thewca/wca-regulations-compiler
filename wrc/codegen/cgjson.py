@@ -12,9 +12,10 @@ class WCADocumentJSON(CGDocument):
 
     name = "JSON"
     def __init__(self, versionhash, language, pdf):
-        # We don't need them
-        del versionhash, language
+        # We don't need it
+        del language
         super(WCADocumentJSON, self).__init__(list)
+        self.versionhash = versionhash
         self.urls = {'regulations': REGULATIONS_ROOT,
                      'guidelines': REGULATIONS_ROOT + "guidelines.html",
                      'pdf': pdf}
@@ -23,6 +24,7 @@ class WCADocumentJSON(CGDocument):
         self.state_lists = []
         retval = super(WCADocumentJSON, self).visitWCAStates(document)
         self.codegen = {'title': document.title, 'version': document.version,
+                        'version_hash': self.versionhash,
                         'text': document.text, 'states_lists': self.state_lists}
         return retval
 
