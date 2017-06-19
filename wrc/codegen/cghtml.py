@@ -129,7 +129,6 @@ class WCADocumentHtml(CGDocument):
                                     isinstance(a_list[0], LabelDecl))
 
     def visitWCADocument(self, document):
-        # self.codegen += self.str_provide.format(title=document.title)
         self.codegen += '<div class="container">'
         self.codegen += TITLE.format(title=document.title)
         self.codegen += VERSION.format(version=document.version,

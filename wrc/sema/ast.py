@@ -1,24 +1,33 @@
 from functools import total_ordering
 
 class WCADocument(object):
-    def __init__(self, title, version, sections):
+    def __init__(self, title, version, text, sections):
         self.title = title
         self.sections = sections
+        self.text = text
         self.version = version
 
 class WCARegulations(WCADocument):
-    def __init__(self, title, version, sections):
-        super(WCARegulations, self).__init__(title, version, sections)
+    def __init__(self, title, version, text, sections):
+        super(WCARegulations, self).__init__(title, version, text, sections)
 
 class WCAGuidelines(WCADocument):
-    def __init__(self, title, version, sections):
-        super(WCAGuidelines, self).__init__(title, version, sections)
+    def __init__(self, title, version, text, sections):
+        super(WCAGuidelines, self).__init__(title, version, text, sections)
+
+class WCAStates(WCADocument):
+    def __init__(self, title, version, text, sections):
+        super(WCAStates, self).__init__(title, version, text, sections)
 
 class Section(object):
     def __init__(self, title, intro, content):
         self.title = title
         self.intro = intro
         self.content = content
+
+class StatesList(Section):
+    def __init__(self, title, content):
+        super(StatesList, self).__init__(title, u'', content)
 
 class Article(Section):
     def __init__(self, title, intro, content, number, newtag, oldtag, name, sep):
@@ -100,6 +109,14 @@ class Guideline(Rule):
     def regname(self):
         return self.number.replace('+', '')
 
+class State(object):
+    def __init__(self, state_id, continent_id, name, friendly_id, info):
+        self.state_id = state_id
+        self.continent_id = continent_id
+        self.name = name
+        self.friendly_id = friendly_id
+        self.info = info
+
 class LabelDecl(object):
     def __init__(self, name, text):
         self.name = name
@@ -148,6 +165,9 @@ class ASTVisitor(object):
     def visitSection(self, section):
         return self.visit(section.intro) and self.visit(section.content)
 
+    def visitStatesList(self, section):
+        return self.visit(section.intro) and self.visit(section.content)
+
     def visitSubsection(self, subsection):
         return self.visit(subsection.intro) and self.visit(subsection.content)
 
@@ -166,6 +186,12 @@ class ASTVisitor(object):
 
     def visitWCARegulations(self, regs):
         return self.visitWCADocument(regs)
+
+    def visitWCAStates(self, states):
+        return self.visitWCADocument(states)
+
+    def visitState(self, state):
+        return True
 
     def visitRule(self, rule):
         return True

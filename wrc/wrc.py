@@ -5,7 +5,7 @@ import os
 from subprocess import check_call, CalledProcessError
 import pkg_resources
 from .parse.parser import WCAParser
-from .sema.ast import WCARegulations, WCAGuidelines, Ruleset
+from .sema.ast import WCARegulations, WCAGuidelines, WCAStates, Ruleset
 from .codegen.cghtml import WCADocumentHtml
 from .codegen.cghtmltopdf import WCADocumentHtmlToPdf
 from .codegen.cgjson import WCADocumentJSON
@@ -13,6 +13,20 @@ from .version import __version__
 
 REGULATIONS_FILENAME = "wca-regulations.md"
 GUIDELINES_FILENAME = "wca-guidelines.md"
+STATES_FILENAME = "wca-states.md"
+
+def parse_states(states):
+    states_as_str = None
+    astreg = None
+    errors = []
+    warnings = []
+    if states:
+        with open(states) as states_file:
+            states_as_str = states_file.read()
+    parser = WCAParser()
+    if states_as_str:
+        astreg, errors, warnings = parser.parse(states_as_str, WCAStates)
+    return (astreg, None, errors, warnings)
 
 def parse_regulations_guidelines(reg, guide):
     reg_as_str = None
@@ -54,10 +68,10 @@ def output(result_tuple, outputs, output_dir):
             output_file.write(content)
             print "Successfully written the content to " + output_filename
 
-def generate(backend_class, inputs, outputs, options, post_process=None):
-    astreg, astguide, errors, warnings = parse_regulations_guidelines(*inputs)
-    if len(errors) + len(warnings) == 0 and astreg and astguide:
-        print ("Compiled Regulations and Guidelines, generating " +
+def generate(backend_class, inputs, outputs, options, parsing_method, post_process=None):
+    astreg, astguide, errors, warnings = parsing_method(*inputs)
+    if len(errors) + len(warnings) == 0:
+        print ("Compiled document, generating " +
                backend_class.name + "...")
         languages_options = languages(False)[options.language]
         cg_instance = backend_class(options.git_hash, options.language,
@@ -136,7 +150,6 @@ def generate_diff(input_ast_reg, input_ast_guide, options):
             errors.append("Translation and reference did not match!")
     return (errors, warnings)
 
-
 def files_from_dir(file_or_directory):
     regulations = None
     guidelines = None
@@ -175,6 +188,55 @@ def languages(display=True):
         sys.exit(0)
     return languages_info
 
+def check_states_file(file_or_directory):
+    if not os.path.isfile(file_or_directory) or not file_or_directory.endswith(STATES_FILENAME):
+        print "Error: input file is not as expected.."
+        sys.exit(1)
+
+def build_common_option(argparser):
+    argparser.add_argument('-o', '--output', default='build/', help='Output directory')
+    argparser.add_argument('input', help='Input file or directory')
+    argparser.add_argument('-g', '--git-hash', default='unknown',
+                           help='Git hash corresponding to the files')
+    argparser.add_argument('-l', '--language', default='english', help='Language of the file')
+
+def handle_errors_and_warnings(errors, warnings):
+    # If some errors or warnings have been detected, output them
+    if len(errors) + len(warnings) != 0:
+        print "Couldn't compile file, the following occured:"
+        for err in errors:
+            print " - Error: " + err
+        for warn in warnings:
+            print " - Warning: " + warn
+        sys.exit(1)
+
+def states():
+    argparser = argparse.ArgumentParser()
+    build_common_option(argparser)
+    argparser.add_argument('--target', help='Select target output kind',
+                           choices=['check', 'json'])
+    options = argparser.parse_args()
+
+    check_states_file(options.input)
+
+    if options.target == "json":
+        check_output(options.output)
+        errors, warnings = generate(WCADocumentJSON,
+                                    [options.input],
+                                    ["states.json"],
+                                    options,
+                                    parse_states)
+    elif options.target == "check":
+        print "Checking input file(s)..."
+        astreg, astguide, errors, warnings = parse_states(options.input)
+        if len(errors) + len(warnings) == 0:
+            print "All checks passed!"
+    else:
+        print "Nothing to do, exiting..."
+        sys.exit(0)
+
+    handle_errors_and_warnings(errors, warnings)
+
 def run():
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
@@ -184,11 +246,7 @@ def run():
     action_group.add_argument('--diff', help='Diff against the specified file')
     action_group.add_argument('-v', '--version', action='version',
                               version=__version__)
-    argparser.add_argument('-o', '--output', default='build/', help='Output directory')
-    argparser.add_argument('-l', '--language', default='english', help='Language of the file')
-    argparser.add_argument('-g', '--git-hash', default='unknown',
-                           help='Git hash corresponding to the files')
-    argparser.add_argument('input', help='Input file or directory')
+    build_common_option(argparser)
 
     options = argparser.parse_args()
 
@@ -206,7 +264,7 @@ def run():
         errors, warnings = generate(WCADocumentHtml,
                                     (input_regulations, input_guidelines),
                                     ["index.html.erb", "guidelines.html.erb"],
-                                    options)
+                                    options, parse_regulations_guidelines)
     elif options.target == "pdf":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
@@ -216,7 +274,7 @@ def run():
         errors, warnings = generate(WCADocumentHtmlToPdf,
                                     (input_regulations, input_guidelines),
                                     ["regulations_tmp.html", "regulations_tmp.html"],
-                                    options,
+                                    options, parse_regulations_guidelines,
                                     html_to_pdf)
         # errors, warnings = generate_htmltopdf(input_regulations, input_guidelines, options)
     elif options.target == "json":
@@ -224,7 +282,7 @@ def run():
         errors, warnings = generate(WCADocumentJSON,
                                     (input_regulations, input_guidelines),
                                     ["wca-regulations.json"],
-                                    options)
+                                    options, parse_regulations_guidelines)
     elif options.target == "check" or options.diff:
         print "Checking input file(s)..."
         astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
@@ -235,15 +293,7 @@ def run():
                 print "Checking reference file(s) for diff"
                 errors, warnings = generate_diff(astreg, astguide, options)
 
-
-    # If some errors or warnings have been detected, output them
-    if len(errors) + len(warnings) != 0:
-        print "Couldn't compile file, the following occured:"
-        for err in errors:
-            print " - Error: " + err
-        for warn in warnings:
-            print " - Warning: " + warn
-        sys.exit(1)
+    handle_errors_and_warnings(errors, warnings)
 
 if __name__ == '__main__':
     run()
