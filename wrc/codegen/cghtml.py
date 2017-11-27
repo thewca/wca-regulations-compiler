@@ -189,9 +189,11 @@ class WCADocumentHtml(CGDocument):
         return retval
 
     def visitSubsection(self, subsection):
-        self.codegen += H3.format(anchor=anchorizer(subsection.title),
-                                  title=subsection.title)
-        return super(WCADocumentHtml, self).visitSubsection(subsection)
+        if self.shouldEmitSubsection(self.language, subsection.title):
+            self.codegen += H3.format(anchor=anchorizer(subsection.title),
+                                      title=subsection.title)
+            return super(WCADocumentHtml, self).visitSubsection(subsection)
+        return True
 
     def visitRegulation(self, reg):
         self.codegen += self.regulation.format(i=reg.number,
