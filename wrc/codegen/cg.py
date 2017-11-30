@@ -21,3 +21,6 @@ class CGDocument(ASTVisitor):
         if (ast_guide):
             self.visit(ast_guide)
         return (codegen_reg, self.codegen)
+
+    def shouldEmitSubsection(self, language, title):
+        return not (language == "english" and title == "Translation")
