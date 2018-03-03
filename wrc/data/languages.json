@@ -118,6 +118,13 @@
     "guidelines": "Дапаўненні да Палажэнняў",
     "pdf": "wca-regulations-and-guidelines"
   },
+  "vietnamese": {
+    "name": "Vietnamese",
+    "native": "Tiếng Việt",
+    "regulations": "Quy định",
+    "guidelines": "Hướng dẫn",
+    "pdf": "quy-dinh-va-huong-dan-WCA"
+  },
   "portuguese-european": {
     "name": "Portuguese (European)",
     "native": "Português Europeu",
