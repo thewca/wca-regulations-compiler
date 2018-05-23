@@ -27,6 +27,13 @@
     "guidelines": "Smjernice",
     "pdf": "wca-pravilnik-i-smjernice"
   },
+  "dutch": {
+    "name": "Dutch",
+    "native": "Nederlands",
+    "regulations": "Wedstrijdreglementen",
+    "guidelines": "Richtlijnen",
+    "pdf": "wca-reglementen-en-richtlijnen"
+  },
   "finnish": {
     "name": "Finnish",
     "native": "Suomi",
