@@ -74,7 +74,7 @@ class WCALexer(object):
         return token
 
     def t_STATESHEADER(self, token):
-        ur'\#\#\s+<states-list>(?P<title>[^<\n]+)\n'
+        ur'\#\#\s+<states-list>(?P<title>[^<\n]*)\n'
         title = token.lexer.lexmatch.group("title").decode("utf8")
         token.value = title
         token.lexer.lineno += 1
