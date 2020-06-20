@@ -83,6 +83,13 @@
     "guidelines": "Guidelines",
     "pdf": "wca-regulations-and-guidelines"
   },
+  "kazakh": {
+    "name": "Kazakh",
+    "native": "Қазақ",
+    "regulations": "Eреже",
+    "guidelines": "Қосымша",
+    "pdf": "wca-ереже-және-қосымша"
+  },
   "korean": {
     "name": "Korean",
     "native": "Korean",
