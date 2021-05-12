@@ -9,13 +9,13 @@ BRANCH_REG = "official"
 BRANCH_TRANS = "master"
 ID_REG = "official"
 ID_TRANS = "wca-regulations-translations"
-TOC_ELEM = u'<li>{name}{sep}<a href="#{anchor}">{title}</a></li>\n'
-H2 = u'<h2 id="{anchor}">{title}</h2>\n'
-H3 = u'<h3 id="{anchor}">{title}</h3>\n'
-PROVIDE = u"<% provide(:title, '{title}') %>\n"
-TITLE = u'<h1>{title}</h1>\n'
-VERSION = u'<div class="version">{version}<br/>{gitlink}</div>\n'
-GITLINK = (u'[<code><a href="{repo}/tree/{branch}/{gitdir}">{identifier}</a>'
+TOC_ELEM = '<li>{name}{sep}<a href="#{anchor}">{title}</a></li>\n'
+H2 = '<h2 id="{anchor}">{title}</h2>\n'
+H3 = '<h3 id="{anchor}">{title}</h3>\n'
+PROVIDE = "<% provide(:title, '{title}') %>\n"
+TITLE = '<h1>{title}</h1>\n'
+VERSION = '<div class="version">{version}<br/>{gitlink}</div>\n'
+GITLINK = ('[<code><a href="{repo}/tree/{branch}/{gitdir}">{identifier}</a>'
            ':<a href="{repo}/commits/{version}">{version}</a></code>]')
 
 # Some homemade basics non-robust md2html functions
@@ -90,7 +90,7 @@ class WCADocumentHtml(CGDocument):
     ''' Emit html formatted to fit in the WCA website.  '''
     name = "HTML"
     def __init__(self, versionhash, language, pdf):
-        super(WCADocumentHtml, self).__init__(unicode)
+        super(WCADocumentHtml, self).__init__(str)
         self.regset = set()
         self.urls = {'regulations': './', 'guidelines': './guidelines.html',
                      'pdf': pdf}
@@ -107,17 +107,17 @@ class WCADocumentHtml(CGDocument):
         # Overridable attributes
         self.emit_rails_header = True
         self.emit_toc = True
-        self.harticle = (u'<div id="{anchor}"><div id="{old}">'
+        self.harticle = ('<div id="{anchor}"><div id="{old}">'
                          '<h2 id="article-{anchor}-{new}"> '
                          '<a href="#article-{anchor}-{new}">{name}</a>{sep}{title}'
                          '</h2></div></div>\n')
-        self.label = (u'<li><span class="{name} label label-default">{name}</span> '
+        self.label = ('<li><span class="{name} label label-default">{name}</span> '
                       '{text}</li>\n')
-        self.guideline = (u'<li id="{i}"><a href="#{i}">{i}</a>) '
+        self.guideline = ('<li id="{i}"><a href="#{i}">{i}</a>) '
                           '<span class="{label} label {linked}">'
                           '<a {attr}>{label}</a></span> {text}</li>\n')
-        self.regulation = u'<li id="{i}"><a href="#{i}">{i}</a>) {text}'
-        self.postreg = u'</li>\n'
+        self.regulation = '<li id="{i}"><a href="#{i}">{i}</a>) {text}'
+        self.postreg = '</li>\n'
 
     def md2html(self, text):
         ''' Use the simple markdown to html converter with our URLs '''

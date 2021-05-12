@@ -66,13 +66,13 @@ def output(result_tuple, outputs, output_dir):
             output_filename = output_dir + "/" + filename
         with open(output_filename, mode + '+') as output_file:
             output_file.write(content)
-            print "Successfully written the content to " + output_filename
+            print("Successfully written the content to " + output_filename)
 
 def generate(backend_class, inputs, outputs, options, parsing_method, post_process=None):
     astreg, astguide, errors, warnings = parsing_method(*inputs)
     if len(errors) + len(warnings) == 0:
-        print ("Compiled document, generating " +
-               backend_class.name + "...")
+        print(("Compiled document, generating " +
+               backend_class.name + "..."))
         languages_options = languages(False)[options.language]
         cg_instance = backend_class(options.git_hash, options.language,
                                     languages_options["pdf"])
@@ -100,16 +100,16 @@ def html_to_pdf(tmp_filenames, output_directory, lang_options):
     wkthml_cmd.append(output_directory + "/" + lang_options['pdf'] + '.pdf')
     try:
         check_call(wkthml_cmd)
-        print "Successfully generated pdf file!"
-        print "Cleaning temporary file (%s)..." % input_html
+        print("Successfully generated pdf file!")
+        print("Cleaning temporary file (%s)..." % input_html)
         os.remove(input_html)
     except CalledProcessError as err:
-        print "Error while generating pdf:"
-        print err
+        print("Error while generating pdf:")
+        print(err)
         sys.exit(1)
     except OSError as err:
-        print "Error when running command \"" + " ".join(wkthml_cmd) + "\""
-        print err
+        print("Error when running command \"" + " ".join(wkthml_cmd) + "\"")
+        print(err)
         sys.exit(1)
 
 def output_diff(submitted, reference):
@@ -119,11 +119,11 @@ def output_diff(submitted, reference):
     unexpected = set_submitted - set_reference
     missing = set_reference - set_submitted
     if len(unexpected) > 0:
-        print ("/!\\ These numbers are in the translation file, "
-               "but not in the reference one: {%s}" % ', '.join(sorted(unexpected)))
+        print(("/!\\ These numbers are in the translation file, "
+               "but not in the reference one: {%s}" % ', '.join(sorted(unexpected))))
     if len(missing) > 0:
-        print ("/!\\ These numbers are in the reference file, "
-               "but not in the translation one: {%s}" % ', '.join(sorted(missing)))
+        print(("/!\\ These numbers are in the reference file, "
+               "but not in the translation one: {%s}" % ', '.join(sorted(missing))))
     return len(unexpected) + len(missing)
 
 def generate_diff(input_ast_reg, input_ast_guide, options):
@@ -131,21 +131,21 @@ def generate_diff(input_ast_reg, input_ast_guide, options):
     parse_ref = parse_regulations_guidelines(ref_regulations, ref_guidelines)
     astreg_ref, astguide_ref, errors, warnings = parse_ref
     if len(errors) + len(warnings) != 0:
-        print "Couldn't compile reference Regulations and Guidelines"
+        print("Couldn't compile reference Regulations and Guidelines")
     else:
-        print "All checks passed!"
+        print("All checks passed!")
         diffs = 0
         if input_ast_reg and astreg_ref:
             diffs += output_diff(input_ast_reg, astreg_ref)
         elif input_ast_reg:
-            print "No reference to compare the intput Regulations to"
+            print("No reference to compare the intput Regulations to")
 
         if input_ast_guide and astguide_ref:
             diffs += output_diff(input_ast_guide, astguide_ref)
         elif input_ast_guide:
-            print "No reference to compare the input Guidelines to"
+            print("No reference to compare the input Guidelines to")
         if diffs == 0:
-            print "Input file(s) and reference file(s) matched!"
+            print("Input file(s) and reference file(s) matched!")
         else:
             errors.append("Translation and reference did not match!")
     return (errors, warnings)
@@ -158,8 +158,8 @@ def files_from_dir(file_or_directory):
         guidelines = file_or_directory + "/" + GUIDELINES_FILENAME
         if (not os.path.isfile(regulations) or
                 not os.path.isfile(guidelines)):
-            print ("Error: the directory '%s' must contain both the Regulations "
-                   "and Guidelines files." % file_or_directory)
+            print(("Error: the directory '%s' must contain both the Regulations "
+                   "and Guidelines files." % file_or_directory))
             sys.exit(1)
     elif os.path.isfile(file_or_directory):
         if file_or_directory.endswith(REGULATIONS_FILENAME):
@@ -167,16 +167,16 @@ def files_from_dir(file_or_directory):
         elif file_or_directory.endswith(GUIDELINES_FILENAME):
             guidelines = file_or_directory
         else:
-            print "Error: couldn't detect if the input file are Regulations or Guidelines."
+            print("Error: couldn't detect if the input file are Regulations or Guidelines.")
             sys.exit(1)
     else:
-        print "Error: %s is not a file or a directory." % file_or_directory
+        print("Error: %s is not a file or a directory." % file_or_directory)
         sys.exit(1)
     return (regulations, guidelines)
 
 def check_output(directory):
     if not os.path.isdir(directory):
-        print "Error: output is not a directory."
+        print("Error: output is not a directory.")
         sys.exit(1)
 
 def languages(display=True):
@@ -184,13 +184,13 @@ def languages(display=True):
     languages_info = json.loads(pkg_resources.resource_string(__name__, "data/languages.json"))
 
     if display:
-        print " ".join([key for key in languages_info.keys() if key != "english"])
+        print(" ".join([key for key in list(languages_info.keys()) if key != "english"]))
         sys.exit(0)
     return languages_info
 
 def check_states_file(file_or_directory):
     if not os.path.isfile(file_or_directory) or not file_or_directory.endswith(STATES_FILENAME):
-        print "Error: input file is not as expected.."
+        print("Error: input file is not as expected..")
         sys.exit(1)
 
 def build_common_option(argparser):
@@ -203,11 +203,11 @@ def build_common_option(argparser):
 def handle_errors_and_warnings(errors, warnings):
     # If some errors or warnings have been detected, output them
     if len(errors) + len(warnings) != 0:
-        print "Couldn't compile file, the following occured:"
+        print("Couldn't compile file, the following occured:")
         for err in errors:
-            print " - Error: " + err
+            print(" - Error: " + err)
         for warn in warnings:
-            print " - Warning: " + warn
+            print(" - Warning: " + warn)
         sys.exit(1)
 
 def states():
@@ -227,12 +227,12 @@ def states():
                                     options,
                                     parse_states)
     elif options.target == "check":
-        print "Checking input file(s)..."
+        print("Checking input file(s)...")
         astreg, astguide, errors, warnings = parse_states(options.input)
         if len(errors) + len(warnings) == 0:
-            print "All checks passed!"
+            print("All checks passed!")
     else:
-        print "Nothing to do, exiting..."
+        print("Nothing to do, exiting...")
         sys.exit(0)
 
     handle_errors_and_warnings(errors, warnings)
@@ -251,7 +251,7 @@ def run():
     options = argparser.parse_args()
 
     if not options.diff and not options.target:
-        print "Nothing to do, exiting..."
+        print("Nothing to do, exiting...")
         sys.exit(0)
 
     input_regulations, input_guidelines = files_from_dir(options.input)
@@ -284,13 +284,13 @@ def run():
                                     ["wca-regulations.json"],
                                     options, parse_regulations_guidelines)
     elif options.target == "check" or options.diff:
-        print "Checking input file(s)..."
+        print("Checking input file(s)...")
         astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
                                                                           input_guidelines)
         if len(errors) + len(warnings) == 0:
-            print "All checks passed!"
+            print("All checks passed!")
             if options.diff:
-                print "Checking reference file(s) for diff"
+                print("Checking reference file(s) for diff")
                 errors, warnings = generate_diff(astreg, astguide, options)
 
     handle_errors_and_warnings(errors, warnings)

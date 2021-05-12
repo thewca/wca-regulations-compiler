@@ -47,21 +47,21 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
                      'pdf': pdf}
         self.emit_rails_header = False
         self.emit_toc = False
-        self.harticle = (u'<div id="{anchor}"></div>'
+        self.harticle = ('<div id="{anchor}"></div>'
                          '<h2 id="article-{anchor}-{new}"> '
                          '{name}{sep}{title}'
                          '</h2>\n')
-        self.label = (u'<li>[<span class="{name} label label-default">{name}</span>] '
+        self.label = ('<li>[<span class="{name} label label-default">{name}</span>] '
                       '{text}</li>\n')
-        self.guideline = (u'<li id="{i}" class="rule">{i}) '
+        self.guideline = ('<li id="{i}" class="rule">{i}) '
                           '<span class="{label} label {linked}">'
                           '[<a {attr}>{label}</a>]</span> {text}</li>\n')
         # Here we intentionally break the hierarchy (ul(li(ul(li))li()) turns to
         # ul(li()ul(li())li()) to be able to "easily" avoid  page breaking
         # inside a 'li' text (it does weird stuff if the whole element has to
         # avoid page-breaking
-        self.regulation = u'<li id="{i}" class="rule">{i}) {text}</li>\n'
-        self.postreg = u''
+        self.regulation = '<li id="{i}" class="rule">{i}) {text}</li>\n'
+        self.postreg = ''
         # Internal variable to handle grouping between a h* and its first element
         self.group_closed = True
 
@@ -119,7 +119,7 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
         # Output the font faces for our custom fonts, shipped with the package
         fonts = {'normal': 'cmunrm.otf', 'italic': 'cmunti.otf',
                  'bold': 'cmunbx.otf', 'bi': 'cmunbi.otf'}
-        for name in fonts.iterkeys():
+        for name in fonts.keys():
             fontfile = pkg_resources.resource_filename("wrc", "data/" + fonts[name])
             if not os.path.isabs(fontfile):
                 fontfile = os.path.abspath(fontfile)

@@ -27,7 +27,7 @@ class Section(object):
 
 class StatesList(Section):
     def __init__(self, title, content):
-        super(StatesList, self).__init__(title, u'', content)
+        super(StatesList, self).__init__(title, '', content)
 
 class Article(Section):
     def __init__(self, title, intro, content, number, newtag, oldtag, name, sep):
@@ -123,7 +123,7 @@ class LabelDecl(object):
         self.text = text
 
     def __eq__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             return self.name.__eq__(other)
         elif isinstance(other, LabelDecl):
             return self.name.__eq__(other.name)
@@ -148,7 +148,7 @@ class ASTVisitor(object):
         name = "visit" + o.__class__.__name__
         method = getattr(self, name, None)
         if method is None or not callable(method):
-            print "Unable to visit " + o.__class__.__name__
+            print("Unable to visit " + o.__class__.__name__)
             return False
         return method(o)
 
