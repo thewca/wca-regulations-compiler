@@ -88,7 +88,7 @@ class WCAParser(object):
         '''texts : textlist'''
         # We want to merge back the text that we had to split in lexer
         # One \n means linebreak, \n\n changes paragraph
-        texts[0] = u"\n".join(texts[1])
+        texts[0] = "\n".join(texts[1])
 
     def p_textlist(self, textlist):
         '''textlist : textlist text
@@ -100,7 +100,7 @@ class WCAParser(object):
                 | TEXT
                 | PARBREAK'''
         item = text[1]
-        text[0] = item if item[0] != "\n" else u""
+        text[0] = item if item[0] != "\n" else ""
         if len(text) > 2:
             text[0] += "\n"
 
@@ -163,12 +163,12 @@ class WCAParser(object):
     def p_optsubsections(self, optsubsections):
         '''optsubsections : subsections
                           | '''
-        optsubsections[0] = optsubsections[1] if len(optsubsections) > 1 else u""
+        optsubsections[0] = optsubsections[1] if len(optsubsections) > 1 else ""
 
     def p_opttexts(self, opttexts):
         '''opttexts : texts
                     | '''
-        opttexts[0] = opttexts[1] if len(opttexts) > 1 else u""
+        opttexts[0] = opttexts[1] if len(opttexts) > 1 else ""
 
 
     def p_subsections(self, subsections):

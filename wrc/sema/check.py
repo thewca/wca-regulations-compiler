@@ -87,7 +87,7 @@ class LabelCheck(SemaAnalysis):
         return True
 
     def end_of_document(self, document):
-        for key, value in self.labels.iteritems():
+        for key, value in self.labels.items():
             if not value:
                 self.warnings.append(self.warn_unused % key.name)
         return True

@@ -30,30 +30,30 @@ class WCALexer(object):
     t_ignore = '\t'
 
     def t_TITLE(self, token):
-        ur'\#\s+<wca-title>(?P<title>.+)\n'
+        r'\#\s+<wca-title>(?P<title>.+)\n'
         token.value = token.lexer.lexmatch.group("title").decode("utf8")
         token.lexer.lineno += 1
         return token
 
     def t_VERSION(self, token):
-        ur'<version>(?P<version>.+)\n'
+        r'<version>(?P<version>.+)\n'
         token.lexer.lineno += 1
         token.value = token.lexer.lexmatch.group("version").decode("utf8")
         return token
 
     def t_STATESTAG(self, token):
-        ur'<wca-states>\n'
+        r'<wca-states>\n'
         token.lexer.lineno += 1
         token.value = None
         return token
 
     def t_TOC(self, token):
-        ur'<table-of-contents>'
+        r'<table-of-contents>'
         token.value = token.value.decode("utf8")
         return token
 
     def t_LABELDECL(self, token):
-        ur'-\s<label>\s*\[(?P<label>.+?)\]\s*(?P<text>.+?)\n'
+        r'-\s<label>\s*\[(?P<label>.+?)\]\s*(?P<text>.+?)\n'
         label = token.lexer.lexmatch.group("label").decode("utf8")
         text = token.lexer.lexmatch.group("text").decode("utf8")
         token.value = (label, text)
@@ -62,7 +62,7 @@ class WCALexer(object):
 
     def t_ARTICLEHEADER(self, token):
         # \xef\xbc\x9a is the "fullwidth colon" used in Japanese for instance
-        ur'\#\#\s+<article-(?P<number>[A-Z0-9]+)><(?P<newtag>[a-zA-Z0-9-]+)><(?P<oldtag>[a-zA-Z0-9-]+)>[ ]*(?P<name>[^\<]+?)(?P<sep>:\s|\xef\xbc\x9a)(?P<title>[^<\n]+)\n'
+        r'\#\#\s+<article-(?P<number>[A-Z0-9]+)><(?P<newtag>[a-zA-Z0-9-]+)><(?P<oldtag>[a-zA-Z0-9-]+)>[ ]*(?P<name>[^\<]+?)(?P<sep>:\s|\xef\xbc\x9a)(?P<title>[^<\n]+)\n'
         number = token.lexer.lexmatch.group("number").decode("utf8")
         newtag = token.lexer.lexmatch.group("newtag").decode("utf8")
         oldtag = token.lexer.lexmatch.group("oldtag").decode("utf8")
@@ -74,14 +74,14 @@ class WCALexer(object):
         return token
 
     def t_STATESHEADER(self, token):
-        ur'\#\#\s+<states-list>(?P<title>[^<\n]*)\n'
+        r'\#\#\s+<states-list>(?P<title>[^<\n]*)\n'
         title = token.lexer.lexmatch.group("title").decode("utf8")
         token.value = title
         token.lexer.lineno += 1
         return token
 
     def t_HEADERSEC(self, token):
-        ur'\#\#\s+(?P<title>.+?)\n'
+        r'\#\#\s+(?P<title>.+?)\n'
         title = token.lexer.lexmatch.group("title").decode("utf8")
         token.value = title
         token.lexer.lineno += 1
@@ -89,14 +89,14 @@ class WCALexer(object):
 
     # This is not very flexible, but make the yacc very straightforward
     def t_HEADERSUBSEC(self, token):
-        ur'\#\#\#\s+(?P<title>.+?)\n'
+        r'\#\#\#\s+(?P<title>.+?)\n'
         title = token.lexer.lexmatch.group("title").decode("utf8")
         token.value = title
         token.lexer.lineno += 1
         return token
 
     def t_REGULATION(self, token):
-        ur'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+)\)\s*(?P<text>.+?[^ ])\n'
+        r'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+)\)\s*(?P<text>.+?[^ ])\n'
         indents = token.lexer.lexmatch.group("indents")
         indents = len(indents)/4 if indents else 0
         reg = token.lexer.lexmatch.group("reg").decode("utf8")
@@ -106,7 +106,7 @@ class WCALexer(object):
         return token
 
     def t_GUIDELINE(self, token):
-        ur'-\s(?P<reg>[a-zA-Z0-9]+[+]+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?[^ ])\n'
+        r'-\s(?P<reg>[a-zA-Z0-9]+[+]+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?[^ ])\n'
         reg = token.lexer.lexmatch.group("reg").decode("utf8")
         text = token.lexer.lexmatch.group("text").decode("utf8")
         label = token.lexer.lexmatch.group("label").decode("utf8")
@@ -115,7 +115,7 @@ class WCALexer(object):
         return token
 
     def t_STATE(self, token):
-        ur'-\s\((?P<state>[A-Z]{2}):(?P<continent>[_A-Za-z ]+)(:(?P<friendly_id>[A-Za-z_]+))?\)\s(?P<name>[A-Z].+?[^ ])\n'
+        r'-\s\((?P<state>[A-Z]{2}):(?P<continent>[_A-Za-z ]+)(:(?P<friendly_id>[A-Za-z_]+))?\)\s(?P<name>[A-Z].+?[^ ])\n'
         state = token.lexer.lexmatch.group("state").decode("utf8")
         continent = token.lexer.lexmatch.group("continent").decode("utf8")
         name = token.lexer.lexmatch.group("name").decode("utf8")
@@ -129,28 +129,28 @@ class WCALexer(object):
         return token
 
     def t_TEXT(self, token):
-        ur'(?P<text>[^<#\n ].+?[^ ])(?=\n)'
+        r'(?P<text>[^<#\n ].+?[^ ])(?=\n)'
         text = token.lexer.lexmatch.group("text").decode("utf8")
         token.value = text
         return token
 
     def t_PARBREAK(self, token):
-        ur'\n{2,}'
+        r'\n{2,}'
         token.lexer.lineno += len(token.value)
         return token
 
     def t_trailingwhitespace(self, token):
-        ur'.+? \n'
-        print "Error: trailing whitespace at line %s in text '%s'" % (token.lexer.lineno + 1, token.value[:-1])
+        r'.+? \n'
+        print("Error: trailing whitespace at line %s in text '%s'" % (token.lexer.lineno + 1, token.value[:-1]))
         token.lexer.lexerror = True
         token.lexer.skip(1)
 
     def t_newline(self, token):
-        ur'\n+'
+        r'\n+'
         token.lexer.lineno += len(token.value)
 
     def t_error(self, token):
-        print "Illegal character '%s' at line %s" % (token.value[0], token.lexer.lineno)
+        print("Illegal character '%s' at line %s" % (token.value[0], token.lexer.lineno))
         token.lexer.lexerror = True
         token.lexer.skip(1)
 
