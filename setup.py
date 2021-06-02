@@ -10,6 +10,7 @@ setup(name='wrc',
       license='GPLv3',
       packages=find_packages(),
       install_requires=['ply>=3.7', 'unidecode'],
+      python_requires='>=3.0',
       package_data={
           'wrc': ['data/*'],
       },
