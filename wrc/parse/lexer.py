@@ -98,7 +98,7 @@ class WCALexer(object):
     def t_REGULATION(self, token):
         r'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+)\)\s*(?P<text>.+?[^ ])\n'
         indents = token.lexer.lexmatch.group("indents")
-        indents = len(indents)/4 if indents else 0
+        indents = len(indents)//4 if indents else 0
         reg = token.lexer.lexmatch.group("reg")
         text = token.lexer.lexmatch.group("text")
         token.value = (indents, reg, text)
