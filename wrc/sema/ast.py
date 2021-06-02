@@ -156,7 +156,7 @@ class ASTVisitor(object):
         retval = [self.visit(i) for i in o]
         return retval.count(False) == 0
 
-    def visitunicode(self, s):
+    def visitstr(self, s):
         return True
 
     def visitLabelDecl(self, label):

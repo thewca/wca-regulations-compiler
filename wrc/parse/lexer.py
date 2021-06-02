@@ -61,8 +61,8 @@ class WCALexer(object):
         return token
 
     def t_ARTICLEHEADER(self, token):
-        # \xef\xbc\x9a is the "fullwidth colon" used in Japanese for instance
-        r'\#\#\s+<article-(?P<number>[A-Z0-9]+)><(?P<newtag>[a-zA-Z0-9-]+)><(?P<oldtag>[a-zA-Z0-9-]+)>[ ]*(?P<name>[^\<]+?)(?P<sep>:\s|\xef\xbc\x9a)(?P<title>[^<\n]+)\n'
+        # In the "sep" group, there is a distinct difference between `:` (ASCII colon) and `：` (CJK full-width colon)
+        r'\#\#\s+<article-(?P<number>[A-Z0-9]+)><(?P<newtag>[a-zA-Z0-9-]+)><(?P<oldtag>[a-zA-Z0-9-]+)>[ ]*(?P<name>[^\<]+?)(?P<sep>:\s|：)(?P<title>[^<\n]+)\n'
         number = token.lexer.lexmatch.group("number")
         newtag = token.lexer.lexmatch.group("newtag")
         oldtag = token.lexer.lexmatch.group("oldtag")

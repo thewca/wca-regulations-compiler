@@ -135,14 +135,12 @@ class WCADocumentHtml(CGDocument):
                                        gitlink=self.gitlink)
         retval = [self.visit(s) for s in document.sections]
         self.codegen += "</div>\n"
-        # Codegen is a Unicode
         # FIXME do we really need ascii html entities instead of plain utf8 ?
-        self.codegen = self.codegen.encode('ascii', 'xmlcharrefreplace')
-        # Now codegen is a str
+        self.codegen = self.codegen.encode('ascii', 'xmlcharrefreplace').decode('utf-8')
         # Let's provide the title in utf8, Rails should be able to handle it
         if self.emit_rails_header:
-            self.codegen = (PROVIDE.format(title=document.title).encode('utf8')
-                            + str(self.codegen))
+            self.codegen = (PROVIDE.format(title=document.title)
+                            + self.codegen)
         return retval.count(False) == 0
 
     def visitlist(self, o):
@@ -154,7 +152,7 @@ class WCADocumentHtml(CGDocument):
             self.codegen += "</ul>\n"
         return retval
 
-    def visitunicode(self, u):
+    def visitstr(self, u):
         if len(u) > 0:
             self.codegen += "<p>" + self.md2html(u) + "</p>\n"
         return True
