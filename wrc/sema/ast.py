@@ -74,7 +74,7 @@ def split_rule_number(number):
 @total_ordering
 class Rule(object):
     def __init__(self, number, text, parent):
-        self.number = number.decode("utf8")
+        self.number = number
         self.list_number = split_rule_number(self.number)
         self.text = text
         self.parent = parent
