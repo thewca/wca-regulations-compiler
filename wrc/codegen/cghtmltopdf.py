@@ -95,8 +95,8 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
         self.no_break()
         return super(WCADocumentHtmlToPdf, self).visitTableOfContent(toc)
 
-    def visitunicode(self, u):
-        retval = super(WCADocumentHtmlToPdf, self).visitunicode(u)
+    def visitstr(self, u):
+        retval = super(WCADocumentHtmlToPdf, self).visitstr(u)
         if len(u) > 0 and not self.group_closed:
             # We are in an introduction paragraph and we want to group it
             # with the article's h2
