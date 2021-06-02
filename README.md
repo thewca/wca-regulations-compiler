@@ -32,8 +32,6 @@ You can also take a look at the travis [script](https://github.com/thewca/wca-re
 
 ## Running from the sources
 
-Note: the whole project is written using python 2.7, if something goes wrong it's likely because your `python` command defaults to python 3.
-
 The compiler is built on top of python lex/yacc implementation `ply`, so you probably need to run `pip install ply` to install it.
 When this is done, you can use `python -m wrc.wrc` from the repository's root instead of `wrc`.
 If you want to use `wrc-states` from the source, an easy way to do this is to run `python -c "from wrc.wrc import states; states()"`
@@ -44,6 +42,6 @@ If you want to use `wrc-states` from the source, an easy way to do this is to ru
 
 - Bump the version number in `wrc/version.py`
 - Clean the `dist` and `wrc.egg_info` directories
-- `python2 setup.py egg_info`
-- `python2 setup.py sdist bdist_wheel`
+- `python setup.py egg_info`
+- `python setup.py sdist bdist_wheel`
 - `twine upload dist/*`
