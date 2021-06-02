@@ -182,7 +182,8 @@ def check_output(directory):
 
 def languages(display=True):
     # Get information about languages from the config file (tex encoding, pdf filename, etc)
-    languages_info = json.loads(pkg_resources.resource_string(__name__, "data/languages.json"))
+    languages_json_str = pkg_resources.resource_string(__name__, "data/languages.json").decode('utf-8')
+    languages_info = json.loads(languages_json_str)
 
     if display:
         print(" ".join([key for key in list(languages_info.keys()) if key != "english"]))
