@@ -96,6 +96,7 @@ def html_to_pdf(tmp_filenames, output_directory, lang_options):
     wkthml_cmd.extend(["--footer-html", footer_file])
     wkthml_cmd.extend(["--header-spacing", "8"])
     wkthml_cmd.extend(["--footer-spacing", "8"])
+    wkthml_cmd.extend(["--enable-local-file-access"])
     wkthml_cmd.append(input_html)
     wkthml_cmd.append(output_directory + "/" + lang_options['pdf'] + '.pdf')
     try:
