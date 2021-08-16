@@ -118,6 +118,13 @@
     "guidelines": "Directrices",
     "pdf": "wca-reglamento-y-directrices"
   },
+  "swedish": {
+    "name": "Swedish",
+    "native": "Svenska",
+    "regulations": "Riktlinjer",
+    "guidelines": "Regler",
+    "pdf": "wca-regler-och-riktlinjer"
+  },
   "belarusian": {
     "name": "Belarusian",
     "native": "Беларуская мова",
