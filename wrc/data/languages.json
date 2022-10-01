@@ -154,10 +154,10 @@
     "pdf": "wca-regulamentos-e-orientacoes"
   },
   "slovenian": {
-  "name": "Slovenian",
-  "native": "Slovenščina",
-  "regulations": "Pravilnik",
-  "guidelines": "Smernice",
-  "pdf": "wca-pravilnik-in-smernice"
+    "name": "Slovenian",
+    "native": "Slovenščina",
+    "regulations": "Pravilnik",
+    "guidelines": "Smernice",
+    "pdf": "wca-pravilnik-in-smernice"
   }
 }
