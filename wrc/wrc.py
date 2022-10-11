@@ -64,8 +64,6 @@ def get_file_as_str(file) -> str:
 
     # Add EOL to EOF if missing.
     if file_as_str[-1] != '\n':
-        print('[WARNING] end-of-line (blank new line) must be added at end-of-file')
-        print('[INFO] EOL added for this run')
         file_as_str += '\n'
 
     return file_as_str
