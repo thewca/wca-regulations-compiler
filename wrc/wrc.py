@@ -36,15 +36,10 @@ def parse_regulations_guidelines(reg, guide):
     errors = []
     warnings = []
     if reg:
-        with open(reg) as reg_file:
-            reg_as_str = reg_file.read()
-        # FIXME: do we want to just remove tabs from regs?
-        reg_as_str = reg_as_str.replace("\t", "    ")
+        reg_as_str = get_file_as_str(reg)
     if guide:
-        with open(guide) as guide_file:
-            guide_as_str = guide_file.read()
-        # FIXME: do we want to just remove tabs from regs?
-        guide_as_str = guide_as_str.replace("\t", "    ")
+        guide_as_str = get_file_as_str(guide)
+
     parser = WCAParser()
     if reg_as_str:
         astreg, errors_reg, warnings_reg = parser.parse(reg_as_str, WCARegulations)
@@ -55,6 +50,23 @@ def parse_regulations_guidelines(reg, guide):
         errors.extend(errors_guide)
         warnings.extend(warnings_guide)
     return (astreg, astguide, errors, warnings)
+
+def get_file_as_str(file) -> str:
+    """
+    * TAB -> 4 spaces.
+    * Add EOL to EOF if missing.
+    :return: file as string.
+    """
+    with open(file) as md_file:
+        file_as_str = md_file.read()
+    # FIXME: do we want to just remove tabs from regs?
+    file_as_str = file_as_str.replace("\t", "    ")
+
+    # Add EOL to EOF if missing.
+    if file_as_str[-1] != '\n':
+        file_as_str += '\n'
+
+    return file_as_str
 
 def output(result_tuple, outputs, output_dir):
     output_filename = None
