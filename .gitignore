@@ -3,4 +3,5 @@
 /*.egg-info
 
 .idea/
+build/
 venv/

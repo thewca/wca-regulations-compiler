@@ -49,13 +49,23 @@ class WCADocumentJSON(CGDocument):
 
 
     def visitRule(self, reg):
+        label = None
         url = "/regulations/"
+
         if isinstance(reg, Guideline):
             url += "guidelines.html"
+            label = reg.labelname
+
         url += "#" + reg.number
-        self.codegen.append({'class': 'regulation', 'id': reg.number,
-                             'content_html': simple_md2html(reg.text, self.urls),
-                             'url': url})
+        reg_dict = {
+            'class': 'regulation',
+            'id': reg.number,
+            'content_html': simple_md2html(reg.text, self.urls),
+            'url': url
+        }
+        if label:
+            reg_dict.update({'guideline_label': label})
+        self.codegen.append(reg_dict)
         retval = super(WCADocumentJSON, self).visitRule(reg)
         return retval
 
