@@ -6,7 +6,7 @@ from wrc.codegen.cg import CGDocument
 REPO_REG = "https://github.com/thewca/wca-regulations"
 REPO_TRANS = "https://github.com/thewca/wca-regulations-translations"
 BRANCH_REG = "official"
-BRANCH_TRANS = "master"
+BRANCH_TRANS = "main"
 ID_REG = "official"
 ID_TRANS = "wca-regulations-translations"
 TOC_ELEM = '<li>{name}{sep}<a href="#{anchor}">{title}</a></li>\n'
