@@ -2,7 +2,8 @@ import argparse
 import json
 import sys
 import os
-from subprocess import check_call, CalledProcessError
+import logging
+from weasyprint import HTML, CSS
 import pkg_resources
 from .parse.parser import WCAParser
 from .sema.ast import WCARegulations, WCAGuidelines, WCAStates, Ruleset
@@ -14,6 +15,10 @@ from .version import __version__
 REGULATIONS_FILENAME = "wca-regulations.md"
 GUIDELINES_FILENAME = "wca-guidelines.md"
 STATES_FILENAME = "wca-states.md"
+
+logger = logging.getLogger('weasyprint')
+logger.addHandler(logging.FileHandler('weasyprint.log'))
+
 
 def parse_states(states):
     states_as_str = None
@@ -27,6 +32,7 @@ def parse_states(states):
     if states_as_str:
         astreg, errors, warnings = parser.parse(states_as_str, WCAStates)
     return (astreg, None, errors, warnings)
+
 
 def parse_regulations_guidelines(reg, guide):
     reg_as_str = None
@@ -51,6 +57,7 @@ def parse_regulations_guidelines(reg, guide):
         warnings.extend(warnings_guide)
     return (astreg, astguide, errors, warnings)
 
+
 def get_file_as_str(file) -> str:
     """
     * TAB -> 4 spaces.
@@ -68,6 +75,7 @@ def get_file_as_str(file) -> str:
 
     return file_as_str
 
+
 def output(result_tuple, outputs, output_dir):
     output_filename = None
     for content, filename in zip(result_tuple, outputs):
@@ -79,6 +87,7 @@ def output(result_tuple, outputs, output_dir):
         with open(output_filename, mode + '+') as output_file:
             output_file.write(content)
             print("Successfully written the content to " + output_filename)
+
 
 def generate(backend_class, inputs, outputs, options, parsing_method, post_process=None):
     astreg, astguide, errors, warnings = parsing_method(*inputs)
@@ -94,25 +103,27 @@ def generate(backend_class, inputs, outputs, options, parsing_method, post_proce
             post_process(outputs, options.output, languages_options)
     return (errors, warnings)
 
-def html_to_pdf(tmp_filenames, output_directory, lang_options):
+
+"""
+def html_to_pdf_ex(tmp_filenames, output_directory, lang_options):
     input_html = output_directory + "/" + tmp_filenames[0]
-    wkthml_cmd = ["wkhtmltopdf"]
+    wkhtml_cmd = ["wkhtmltopdf"]
     # Basic margins etc
-    wkthml_cmd.extend(["--margin-left", "18"])
-    wkthml_cmd.extend(["--margin-right", "18"])
-    wkthml_cmd.extend(["--page-size", "Letter"])
+    wkhtml_cmd.extend(["--margin-left", "18"])
+    wkhtml_cmd.extend(["--margin-right", "18"])
+    wkhtml_cmd.extend(["--page-size", "Letter"])
     # Header and Footer
     header_file = pkg_resources.resource_filename("wrc", "data/header.html")
     footer_file = pkg_resources.resource_filename("wrc", "data/footer.html")
-    wkthml_cmd.extend(["--header-html", header_file])
-    wkthml_cmd.extend(["--footer-html", footer_file])
-    wkthml_cmd.extend(["--header-spacing", "8"])
-    wkthml_cmd.extend(["--footer-spacing", "8"])
-    wkthml_cmd.extend(["--enable-local-file-access"])
-    wkthml_cmd.append(input_html)
-    wkthml_cmd.append(output_directory + "/" + lang_options['pdf'] + '.pdf')
+    wkhtml_cmd.extend(["--header-html", header_file])
+    wkhtml_cmd.extend(["--footer-html", footer_file])
+    wkhtml_cmd.extend(["--header-spacing", "8"])
+    wkhtml_cmd.extend(["--footer-spacing", "8"])
+    wkhtml_cmd.extend(["--enable-local-file-access"])
+    wkhtml_cmd.append(input_html)
+    wkhtml_cmd.append(output_directory + "/" + lang_options['pdf'] + '.pdf')
     try:
-        check_call(wkthml_cmd)
+        check_call(wkhtml_cmd)
         print("Successfully generated pdf file!")
         print("Cleaning temporary file (%s)..." % input_html)
         os.remove(input_html)
@@ -121,9 +132,23 @@ def html_to_pdf(tmp_filenames, output_directory, lang_options):
         print(err)
         sys.exit(1)
     except OSError as err:
-        print("Error when running command \"" + " ".join(wkthml_cmd) + "\"")
+        print("Error when running command \"" + " ".join(wkhtml_cmd) + "\"")
         print(err)
         sys.exit(1)
+"""
+
+
+def html_to_pdf(tmp_filenames, output_directory, lang_options):
+    """
+    Get PDF file using Weasyprint.
+    """
+    input_html_path = output_directory + '/' + tmp_filenames[0]
+    output_pdf_path = output_directory + '/' + lang_options['pdf'] + '.pdf'
+
+    main_doc = HTML(filename=input_html_path).write_pdf(target=output_pdf_path,
+                                                        stylesheets=[CSS(pkg_resources.resource_filename("wrc", "data/footer.css"))])
+    # TODO: Add headers. Format footers.
+
 
 def output_diff(submitted, reference):
     rules_visitor = Ruleset()
@@ -138,6 +163,7 @@ def output_diff(submitted, reference):
         print(("/!\\ These numbers are in the reference file, "
                "but not in the translation one: {%s}" % ', '.join(sorted(missing))))
     return len(unexpected) + len(missing)
+
 
 def generate_diff(input_ast_reg, input_ast_guide, options):
     ref_regulations, ref_guidelines = files_from_dir(options.diff)
@@ -163,6 +189,7 @@ def generate_diff(input_ast_reg, input_ast_guide, options):
             errors.append("Translation and reference did not match!")
     return (errors, warnings)
 
+
 def files_from_dir(file_or_directory):
     regulations = None
     guidelines = None
@@ -187,10 +214,12 @@ def files_from_dir(file_or_directory):
         sys.exit(1)
     return (regulations, guidelines)
 
+
 def check_output(directory):
     if not os.path.isdir(directory):
         print("Error: output is not a directory.")
         sys.exit(1)
+
 
 def languages(display=True):
     # Get information about languages from the config file (tex encoding, pdf filename, etc)
@@ -202,10 +231,12 @@ def languages(display=True):
         sys.exit(0)
     return languages_info
 
+
 def check_states_file(file_or_directory):
     if not os.path.isfile(file_or_directory) or not file_or_directory.endswith(STATES_FILENAME):
         print("Error: input file is not as expected..")
         sys.exit(1)
+
 
 def build_common_option(argparser):
     argparser.add_argument('-o', '--output', default='build/', help='Output directory')
@@ -213,6 +244,7 @@ def build_common_option(argparser):
     argparser.add_argument('-g', '--git-hash', default='unknown',
                            help='Git hash corresponding to the files')
     argparser.add_argument('-l', '--language', default='english', help='Language of the file')
+
 
 def handle_errors_and_warnings(errors, warnings):
     # If some errors or warnings have been detected, output them
@@ -223,6 +255,7 @@ def handle_errors_and_warnings(errors, warnings):
         for warn in warnings:
             print(" - Warning: " + warn)
         sys.exit(1)
+
 
 def states():
     argparser = argparse.ArgumentParser()
@@ -250,6 +283,7 @@ def states():
         sys.exit(0)
 
     handle_errors_and_warnings(errors, warnings)
+
 
 def run():
     argparser = argparse.ArgumentParser()
@@ -282,8 +316,8 @@ def run():
     elif options.target == "pdf":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
-            print ("Error: both the Regulations and Guidelines are needed "
-                   "to generate the pdf file.")
+            print("Error: both the Regulations and Guidelines are needed "
+                  "to generate the pdf file.")
             sys.exit(1)
         errors, warnings = generate(WCADocumentHtmlToPdf,
                                     (input_regulations, input_guidelines),
@@ -308,6 +342,7 @@ def run():
                 errors, warnings = generate_diff(astreg, astguide, options)
 
     handle_errors_and_warnings(errors, warnings)
+
 
 if __name__ == '__main__':
     run()
