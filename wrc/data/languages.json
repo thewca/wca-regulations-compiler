@@ -4,6 +4,7 @@
     "native": "English",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
+    "and": "and",
     "pdf": "wca-regulations-and-guidelines"
   },
   "chinese": {
@@ -11,6 +12,7 @@
     "native": "Chinese",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
+    "and":  "and",
     "pdf": "wca-regulations-and-guidelines"
   },
   "chinese-traditional": {
@@ -18,6 +20,7 @@
     "native": "Chinese, Traditional",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
+    "and":  "and",
     "pdf": "wca-regulations-and-guidelines"
   },
   "croatian": {
@@ -25,6 +28,7 @@
     "native": "Hrvatski",
     "regulations": "Pravilnik",
     "guidelines": "Smjernice",
+    "and": "i",
     "pdf": "wca-pravilnik-i-smjernice"
   },
   "dutch": {
@@ -32,6 +36,7 @@
     "native": "Nederlands",
     "regulations": "Wedstrijdreglementen",
     "guidelines": "Richtlijnen",
+    "and": "en",
     "pdf": "wca-reglementen-en-richtlijnen"
   },
   "finnish": {
@@ -39,6 +44,7 @@
     "native": "Suomi",
     "regulations": "Säännöt",
     "guidelines": "Ohjesäännöt",
+    "and": "ja",
     "pdf": "wca-saannot-ja-ohjesaannot"
   },
   "french": {
@@ -46,6 +52,7 @@
     "native": "Français",
     "regulations": "Règlement",
     "guidelines": "Recommandations",
+    "and": "et",
     "pdf": "wca-regulations-and-guidelines"
   },
   "german": {
@@ -53,6 +60,7 @@
     "native": "Deutsch",
     "regulations": "Regeln",
     "guidelines": "Richtlinien",
+    "and": "und",
     "pdf": "wca-regeln-und-richtlinien"
   },
   "hungarian": {
@@ -60,6 +68,7 @@
     "native": "magyar",
     "regulations": "Szabályzat",
     "guidelines": "Útmutató",
+    "and": "es",
     "pdf": "wca-szabalyzat-es-utmutato"
   },
   "indonesian": {
@@ -67,6 +76,7 @@
     "native": "Indonesian",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
+    "and":  "and",
     "pdf": "wca-regulations-and-guidelines"
   },
   "italian": {
@@ -74,6 +84,7 @@
     "native": "Italiano",
     "regulations": "Regolamento",
     "guidelines": "Linee Guida",
+    "and": "e",
     "pdf": "regolamento-e-linee-guida-wca"
   },
   "japanese": {
@@ -81,6 +92,7 @@
     "native": "Japanese",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
+    "and": "and",
     "pdf": "wca-regulations-and-guidelines"
   },
   "kazakh": {
@@ -88,6 +100,7 @@
     "native": "Қазақ",
     "regulations": "Eреже",
     "guidelines": "Қосымша",
+    "and": "және",
     "pdf": "wca-ереже-және-қосымша"
   },
   "korean": {
@@ -95,6 +108,7 @@
     "native": "Korean",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
+    "and": "and",
     "pdf": "wca-regulations-and-guidelines"
   },
   "russian": {
@@ -102,6 +116,7 @@
     "native": "Russian",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
+    "and": "and",
     "pdf": "wca-regulations-and-guidelines"
   },
   "spanish-european": {
@@ -109,6 +124,7 @@
     "native": "Español de España",
     "regulations": "Reglamento",
     "guidelines": "Directrices",
+    "and": "y",
     "pdf": "wca-reglamento-y-directrices"
   },
   "spanish-american": {
@@ -116,6 +132,7 @@
     "native": "Español Americano",
     "regulations": "Reglamento",
     "guidelines": "Directrices",
+    "and": "y",
     "pdf": "wca-reglamento-y-directrices"
   },
   "swedish": {
@@ -123,6 +140,7 @@
     "native": "Svenska",
     "regulations": "Riktlinjer",
     "guidelines": "Regler",
+    "and": "och",
     "pdf": "wca-regler-och-riktlinjer"
   },
   "belarusian": {
@@ -130,6 +148,7 @@
     "native": "Беларуская мова",
     "regulations": "Палажэнні",
     "guidelines": "Дапаўненні да Палажэнняў",
+    "and": "і",
     "pdf": "wca-regulations-and-guidelines"
   },
   "vietnamese": {
@@ -137,6 +156,7 @@
     "native": "Tiếng Việt",
     "regulations": "Quy định",
     "guidelines": "Hướng dẫn",
+    "and": "và",
     "pdf": "quy-dinh-va-huong-dan-WCA"
   },
   "portuguese-european": {
@@ -144,6 +164,7 @@
     "native": "Português Europeu",
     "regulations": "Regulamentos",
     "guidelines": "Orientações",
+    "and": "e",
     "pdf": "wca-regulamentos-e-orientacoes"
   },
   "portuguese-brazilian": {
@@ -151,6 +172,7 @@
     "native": "Português do Brasil",
     "regulations": "Regulamentos",
     "guidelines": "Orientações",
+    "and": "e",
     "pdf": "wca-regulamentos-e-orientacoes"
   },
   "slovenian": {
@@ -158,6 +180,7 @@
     "native": "Slovenščina",
     "regulations": "Pravilnik",
     "guidelines": "Smernice",
+    "and": "in",
     "pdf": "wca-pravilnik-in-smernice"
   }
 }
