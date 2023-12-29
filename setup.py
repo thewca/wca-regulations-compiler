@@ -9,7 +9,7 @@ setup(name='wrc',
       author_email='philippe.44@gmail.com',
       license='GPLv3',
       packages=find_packages(),
-      install_requires=['ply>=3.7', 'unidecode', 'beautifulsoup4'],
+      install_requires=['ply>=3.7', 'unidecode'],
       python_requires='>=3.0',
       package_data={
           'wrc': ['data/*'],
