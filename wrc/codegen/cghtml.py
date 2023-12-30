@@ -17,6 +17,7 @@ TITLE = '<h1>{title}</h1>\n'
 VERSION = '<div class="version">{version}<br/>{gitlink}</div>\n'
 GITLINK = ('[<code><a href="{repo}/tree/{branch}/{gitdir}">{identifier}</a>'
            ':<a href="{repo}/commits/{version}">{version}</a></code>]')
+MERGED_URI = './full'
 
 # Some homemade basics non-robust md2html functions
 # We could also call pandoc to do the conversion but it's awfully slow, and the
@@ -90,11 +91,11 @@ class WCADocumentHtml(CGDocument):
     ''' Emit html formatted to fit in the WCA website.  '''
     name = "HTML"
 
-    def __init__(self, versionhash, language, pdf, combined=False):
+    def __init__(self, versionhash, language, pdf, merged=False):
         super(WCADocumentHtml, self).__init__(str)
         self.regset = set()
-        if combined:
-            self.urls = {'regulations': './full', 'guidelines': './full', 'pdf': pdf}
+        if merged:
+            self.urls = {'regulations': MERGED_URI, 'guidelines': MERGED_URI, 'pdf': pdf}
         else:
             self.urls = {'regulations': './', 'guidelines': './guidelines.html', 'pdf': pdf}
         self.language = language

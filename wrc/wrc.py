@@ -86,15 +86,15 @@ def output(result_tuple, outputs, output_dir):
             print("Successfully written the content to " + output_filename)
 
 
-def generate(backend_class, inputs, outputs, options, parsing_method, post_process=None, combined=False):
+def generate(backend_class, inputs, outputs, options, parsing_method, post_process=None, merged=False):
     astreg, astguide, errors, warnings = parsing_method(*inputs)
     if len(errors) + len(warnings) == 0:
         print(("Compiled document, generating " +
                backend_class.name + "..."))
         languages_options = languages(False)[options.language]
-        if combined:
+        if merged:
             cg_instance = backend_class(options.git_hash, options.language,
-                                        languages_options["pdf"], combined)
+                                        languages_options["pdf"], merged)
             astreg = merge_ast(astreg, astguide, languages_options)
             astguide = None  # Visit the merged AST only.
         else:
@@ -279,7 +279,7 @@ def run():
     action_group = argparser.add_mutually_exclusive_group()
     action_group.add_argument('--target', help='Select target output kind',
                               choices=['latex', 'pdf', 'html', 'check',
-                                       'json', 'combine'])
+                                       'json', 'merged'])
     action_group.add_argument('--diff', help='Diff against the specified file')
     action_group.add_argument('-v', '--version', action='version',
                               version=__version__)
@@ -329,11 +329,11 @@ def run():
             if options.diff:
                 print("Checking reference file(s) for diff")
                 errors, warnings = generate_diff(astreg, astguide, options)
-    elif options.target == "combine":
+    elif options.target == "merged":
         check_output(options.output)
         errors, warnings = generate(WCADocumentHtml,
                                     (input_regulations, input_guidelines),
-                                    ["index.html.erb"],
+                                    ["full.html.erb"],
                                     options, parse_regulations_guidelines, None, True)
 
     handle_errors_and_warnings(errors, warnings)
