@@ -1,4 +1,5 @@
 from wrc.sema.ast import Article, Section, TableOfContent, Guideline, split_rule_number
+from copy import deepcopy
 
 NOTES_INDEX = 0
 TOC_INDEX = 1
@@ -87,7 +88,7 @@ def merge_ast(astreg, astguide, language_options):
     # Now we iterate over all the Articles found in astguide, starting from FIRST_ARTICLE_INDEX.
     for guide_section in astguide.sections[FIRST_ARTICLE_INDEX:]:
 
-        stack = guide_section.content
+        stack = deepcopy(guide_section.content)
         reg_section = None
         # Find the associated section in the Regulations or add it if there isn't one.
         for index, section in enumerate(ast_combined.sections[FIRST_ARTICLE_INDEX:]):

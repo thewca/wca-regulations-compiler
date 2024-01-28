@@ -96,7 +96,6 @@ def generate(backend_class, inputs, outputs, options, parsing_method, post_proce
             cg_instance = backend_class(options.git_hash, options.language,
                                         languages_options["pdf"], merged)
             astreg = merge_ast(astreg, astguide, languages_options)
-            astguide = None  # Visit the merged AST only.
         else:
             cg_instance = backend_class(options.git_hash, options.language,
                                         languages_options["pdf"])
@@ -296,12 +295,14 @@ def run():
     errors = []
     warnings = []
 
-    if options.target == "html":
+    merged = options.target == "merged"
+
+    if options.target == "html" or merged:
         check_output(options.output)
         errors, warnings = generate(WCADocumentHtml,
                                     (input_regulations, input_guidelines),
                                     ["index.html.erb", "guidelines.html.erb"],
-                                    options, parse_regulations_guidelines)
+                                    options, parse_regulations_guidelines, merged=merged)
     elif options.target == "pdf":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
@@ -329,12 +330,6 @@ def run():
             if options.diff:
                 print("Checking reference file(s) for diff")
                 errors, warnings = generate_diff(astreg, astguide, options)
-    elif options.target == "merged":
-        check_output(options.output)
-        errors, warnings = generate(WCADocumentHtml,
-                                    (input_regulations, input_guidelines),
-                                    ["full.html.erb"],
-                                    options, parse_regulations_guidelines, None, True)
 
     handle_errors_and_warnings(errors, warnings)
 
