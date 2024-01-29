@@ -19,6 +19,7 @@ class CGDocument(ASTVisitor):
         codegen_reg = self.codegen
         self.codegen = self.cg_type()
         if (ast_guide):
+            self.react_component = False  # Do not add the "Show Guidelines" checkbox for guidelines.html.
             self.visit(ast_guide)
         return (codegen_reg, self.codegen)
 
