@@ -94,12 +94,8 @@ class WCADocumentHtml(CGDocument):
         super(WCADocumentHtml, self).__init__(str)
         self.regset = set()
         self.urls = {'regulations': './', 'guidelines': './guidelines.html', 'pdf': pdf}
-        if merged:
-            self.guideline_c_attr = ' class="hidden-guideline" hidden="true"'
-            self.react_component = True
-        else:
-            self.guideline_c_attr = ''
-            self.react_component = False
+        self.merged = merged
+        self.guideline_c_attr = ''
         self.language = language
 
         is_translation = (language != "english")
@@ -135,8 +131,11 @@ class WCADocumentHtml(CGDocument):
                                     isinstance(a_list[0], LabelDecl))
 
     def visitWCADocument(self, document):
-        if hasattr(self, 'react_component') and self.react_component:
+        if self.merged:
             self.codegen += '<%= react_component("Regulations") %>'
+            self.guideline_c_attr = ' class="hidden-guideline" hidden="true"'
+        else:
+            self.guideline_c_attr = ''
         self.codegen += '<div class="container">'
         self.codegen += TITLE.format(title=document.title)
         self.codegen += VERSION.format(version=document.version,
