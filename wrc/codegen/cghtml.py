@@ -90,12 +90,10 @@ class WCADocumentHtml(CGDocument):
     ''' Emit html formatted to fit in the WCA website.  '''
     name = "HTML"
 
-    def __init__(self, versionhash, language, pdf, merged=False):
+    def __init__(self, versionhash, language, pdf):
         super(WCADocumentHtml, self).__init__(str)
         self.regset = set()
         self.urls = {'regulations': './', 'guidelines': './guidelines.html', 'pdf': pdf}
-        self.merged = merged
-        self.guideline_c_attr = ''
         self.language = language
 
         is_translation = (language != "english")
@@ -115,7 +113,7 @@ class WCADocumentHtml(CGDocument):
                          '</h2></div></div>\n')
         self.label = ('<li><span class="{name} label label-default">{name}</span> '
                       '{text}</li>\n')
-        self.guideline = ('<li id="{i}"{c}><a href="#{i}">{i}</a>) '
+        self.guideline = ('<li id="{i}"><a href="#{i}">{i}</a>) '
                           '<span class="{label} label {linked}">'
                           '<a {attr}>{label}</a></span> {text}</li>\n')
         self.regulation = '<li id="{i}"><a href="#{i}">{i}</a>) {text}'
@@ -131,11 +129,6 @@ class WCADocumentHtml(CGDocument):
                                     isinstance(a_list[0], LabelDecl))
 
     def visitWCADocument(self, document):
-        if self.merged:
-            self.codegen += '<%= react_component("Regulations") %>'
-            self.guideline_c_attr = ' class="hidden-guideline" hidden="true"'
-        else:
-            self.guideline_c_attr = ''
         self.codegen += '<div class="container">'
         self.codegen += TITLE.format(title=document.title)
         self.codegen += VERSION.format(version=document.version,
@@ -221,7 +214,6 @@ class WCADocumentHtml(CGDocument):
         attr = link_attr if linked else anchor_attr
 
         self.codegen += self.guideline.format(i=guide.number,
-                                              c=self.guideline_c_attr,
                                               text=self.md2html(guide.text),
                                               label=guide.labelname,
                                               linked=label_class,

@@ -109,7 +109,7 @@ def merge_ast(astreg, astguide, language_options):
                 stack = []
                 break
 
-        # Insert guidelines until the stack is empty (duh).
+        # Insert guidelines until the stack is empty.
         while len(stack) > 0:
             guideline = stack.pop(0)
             guideline_num = get_reg_number(guideline)

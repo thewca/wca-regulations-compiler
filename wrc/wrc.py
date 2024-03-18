@@ -94,7 +94,7 @@ def generate(backend_class, inputs, outputs, options, parsing_method, post_proce
         languages_options = languages(False)[options.language]
         if merged:
             cg_instance = backend_class(options.git_hash, options.language,
-                                        languages_options["pdf"], merged)
+                                        languages_options["pdf"])
             astreg = merge_ast(astreg, astguide, languages_options)
         else:
             cg_instance = backend_class(options.git_hash, options.language,
