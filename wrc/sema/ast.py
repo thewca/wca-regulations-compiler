@@ -197,8 +197,7 @@ class ASTVisitor(object):
         return True
 
     def visitGuideline(self, reg):
-        self.visitRule(reg)
-        return True
+        return self.visitRule(reg) and self.visit(reg.children)
 
     def visitRegulation(self, reg):
         return self.visitRule(reg) and self.visit(reg.children)

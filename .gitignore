@@ -5,3 +5,4 @@
 .idea/
 build/
 venv/
+.DS_Store

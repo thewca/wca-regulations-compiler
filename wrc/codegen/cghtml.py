@@ -89,11 +89,11 @@ def simple_md2html(text, urls):
 class WCADocumentHtml(CGDocument):
     ''' Emit html formatted to fit in the WCA website.  '''
     name = "HTML"
+
     def __init__(self, versionhash, language, pdf):
         super(WCADocumentHtml, self).__init__(str)
         self.regset = set()
-        self.urls = {'regulations': './', 'guidelines': './guidelines.html',
-                     'pdf': pdf}
+        self.urls = {'regulations': './', 'guidelines': './guidelines.html', 'pdf': pdf}
         self.language = language
 
         is_translation = (language != "english")
