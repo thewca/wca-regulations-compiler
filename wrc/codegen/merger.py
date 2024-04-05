@@ -69,12 +69,10 @@ def merge_ast(astreg, astguide, language_options):
         raise BadFormatError('NOTES_INDEX is incorrect')
     if not isinstance(astreg.sections[TOC_INDEX], TableOfContent):
         raise BadFormatError('TOC_INDEX is incorrect')
-    if not (hasattr(astreg.sections[FIRST_ARTICLE_INDEX], 'number') and
-            astreg.sections[FIRST_ARTICLE_INDEX].number == '1'):
-        raise BadFormatError('FIRST_ARTICLE_INDEX is incorrect for astreg')
-    if not (hasattr(astguide.sections[FIRST_ARTICLE_INDEX], 'number') and
-            astguide.sections[FIRST_ARTICLE_INDEX].number == '1'):
-        raise BadFormatError('FIRST_ARTICLE_INDEX is incorrect for astguide')
+    for document in [astreg, astguide]:
+        if not hasattr(document.sections[FIRST_ARTICLE_INDEX], 'number') or \
+                document.sections[FIRST_ARTICLE_INDEX].number != '1':
+            raise BadFormatError('FIRST_ARTICLE_INDEX is incorrect')
 
     # We take the astreg as the base, and then we add the guidelines in their corresponding places.
     ast_combined = astreg
