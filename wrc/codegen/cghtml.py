@@ -92,7 +92,7 @@ class WCADocumentHtml(CGDocument):
     def __init__(self, versionhash, language, pdf):
         super(WCADocumentHtml, self).__init__(str)
         self.regset = set()
-        self.urls = {'regulations': './', 'guidelines': './guidelines.html',
+        self.urls = {'regulations': './', 'guidelines': './regulations/guidelines.html',
                      'pdf': pdf}
         self.language = language
 
