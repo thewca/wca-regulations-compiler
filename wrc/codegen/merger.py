@@ -1,4 +1,4 @@
-from wrc.sema.ast import Article, Section, TableOfContent, Guideline, split_rule_number
+from wrc.sema.ast import Article, Section, TableOfContent, Regulation, Guideline, split_rule_number
 from copy import deepcopy
 
 NOTES_INDEX = 0
@@ -17,25 +17,38 @@ def article_number_is_lower(num1: str, num2: str) -> bool:
     Returns True if num1 < num2, otherwise returns False.
     This is necessary because:
     * We need to compare article numbers like '1' and 'A'.
-    * '2' > '10' == True, which is a problem.
+    * '2' < '10' is False, which is not what we want.
+
+    We want the following examples to evaluate to True:
+    * '5' < '12'.
+    * '12' < 'A'.
+    * 'A' < 'B'.
     """
     is_digit_1 = num1.isdigit()
     is_digit_2 = num2.isdigit()
     if is_digit_1 and is_digit_2:
+        # Both strings contain numbers.
         return int(num1) < int(num2)
     elif is_digit_1 and not is_digit_2:
-        # Only num2 is a letter.
+        # Only num2 is a letter (always number < letter).
         return True
     elif not is_digit_1 and not is_digit_2:
+        # Both are letters.
         return num1 < num2
 
+    # The remaining case (num1 letter and num2 number) is always False.
     return False
 
 
 def reg_number_is_lower(num1: list, num2: list) -> bool:
     """
     Returns True if num1 < num2, otherwise returns False.
-    We need this for the same reasons we need compare_article_numbers().
+    Note: this function is always used to compare regs that belong to the same article, so the order of numbers
+    and letters is always the same for both num1 and num2.
+
+    We want the following examples to evaluate to True:
+    * [1, 'a'] < [1, 'a', 1] < [1, 'a', 2, 'b'] < [1, 'c']
+    * ['B', 2] < ['B', 2, 'd'] < ['B', 2, 'd', 1] < ['B', 3]
     """
     for n1, n2 in zip(num1, num2):
         if n1 < n2:
@@ -43,6 +56,10 @@ def reg_number_is_lower(num1: list, num2: list) -> bool:
         elif n1 > n2:
             return False
 
+    # zip() includes the items up to the length of the shorter list.
+    # We get here if the lengths are different but all the items included by zip are equal.
+    # For example, if we are comparing: [2, 'a'] < [2, 'a', 1]. The for loop compares up to [2, 'a'], and as it does not
+    # return from there, we just check if num1 had a shorter list than num2.
     return len(num1) < len(num2)
 
 
@@ -50,8 +67,10 @@ def get_reg_number(reg) -> list:
     if isinstance(reg, Guideline):
         reg = reg.number.split('+')[0]
         num = split_rule_number(reg)
-    else:
+    elif isinstance(reg, Regulation):
         num = split_rule_number(reg.number)
+    else:
+        raise BadFormatError(f'get_reg_number expected Regulation or Guideline, got {type(reg).__name__}')
     if str(num[-1]) == '0':
         # Because split_rule_number() sometimes returns a 0 at the end, and we don't want that here.
         del num[-1]
@@ -75,7 +94,7 @@ def merge_ast(astreg, astguide, language_options):
             raise BadFormatError('FIRST_ARTICLE_INDEX is incorrect')
 
     # We take the astreg as the base, and then we add the guidelines in their corresponding places.
-    ast_combined = astreg
+    ast_combined = deepcopy(astreg)
 
     # Merge the notes:
     # We won't include the "WCA Regulations" notes from the Guidelines, as it is the same as in
@@ -116,7 +135,8 @@ def merge_ast(astreg, astguide, language_options):
             guideline = stack.pop(0)
             guideline_num = get_reg_number(guideline)
             inserted_index = recursive_insert(reg_section.content, guideline, guideline_num, stack)
-            assert inserted_index != -1
+            if inserted_index == -1:
+                raise BadFormatError(f'Could not insert guideline {guideline.number}')
 
     return ast_combined
 

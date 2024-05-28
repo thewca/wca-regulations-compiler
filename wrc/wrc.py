@@ -92,13 +92,11 @@ def generate(backend_class, inputs, outputs, options, parsing_method, post_proce
         print(("Compiled document, generating " +
                backend_class.name + "..."))
         languages_options = languages(False)[options.language]
+        cg_instance = backend_class(options.git_hash, options.language,
+                                    languages_options["pdf"])
         if merged:
-            cg_instance = backend_class(options.git_hash, options.language,
-                                        languages_options["pdf"])
             astreg = merge_ast(astreg, astguide, languages_options)
-        else:
-            cg_instance = backend_class(options.git_hash, options.language,
-                                        languages_options["pdf"])
+
         result_tuple = cg_instance.emit(astreg, astguide)
         output(result_tuple, outputs, options.output)
         if post_process:
