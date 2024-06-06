@@ -92,12 +92,20 @@ def generate(backend_class, inputs, outputs, options, parsing_method, post_proce
         print(("Compiled document, generating " +
                backend_class.name + "..."))
         languages_options = languages(False)[options.language]
-        cg_instance = backend_class(options.git_hash, options.language,
-                                    languages_options["pdf"])
+        if backend_class is WCADocumentHtml:
+            # Other subclasses of CGDocument do not have a "merged" constructor parameter.
+            cg_instance = backend_class(options.git_hash, options.language,
+                                        languages_options["pdf"], merged=merged)
+        else:
+            cg_instance = backend_class(options.git_hash, options.language,
+                                        languages_options["pdf"])
         if merged:
+            # Merge both ASTs and do not visit astguide.
             astreg = merge_ast(astreg, astguide, languages_options)
+            result_tuple = cg_instance.emit(astreg, None)
+        else:
+            result_tuple = cg_instance.emit(astreg, astguide)
 
-        result_tuple = cg_instance.emit(astreg, astguide)
         output(result_tuple, outputs, options.output)
         if post_process:
             post_process(outputs, options.output, languages_options)
@@ -275,11 +283,12 @@ def run():
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
     action_group.add_argument('--target', help='Select target output kind',
-                              choices=['latex', 'pdf', 'html', 'check',
-                                       'json', 'merged'])
+                              choices=['latex', 'pdf', 'html', 'check', 'json'])
     action_group.add_argument('--diff', help='Diff against the specified file')
     action_group.add_argument('-v', '--version', action='version',
                               version=__version__)
+    argparser.add_argument('-m', '--merged',
+                           help='Merge the Regulations and Guidelines into a single document', action='store_true')
     build_common_option(argparser)
 
     options = argparser.parse_args()
@@ -293,14 +302,16 @@ def run():
     errors = []
     warnings = []
 
-    merged = options.target == "merged"
-
-    if options.target == "html" or merged:
+    if options.target == "html":
         check_output(options.output)
+        if options.merged:
+            output_files = ["full.html.erb"]
+        else:
+            output_files = ["index.html.erb", "guidelines.html.erb"]
         errors, warnings = generate(WCADocumentHtml,
                                     (input_regulations, input_guidelines),
-                                    ["index.html.erb", "guidelines.html.erb"],
-                                    options, parse_regulations_guidelines, merged=merged)
+                                    output_files,
+                                    options, parse_regulations_guidelines, merged=options.merged)
     elif options.target == "pdf":
         check_output(options.output)
         if not input_regulations or not input_guidelines:
@@ -311,14 +322,14 @@ def run():
                                     (input_regulations, input_guidelines),
                                     ["regulations_tmp.html", "regulations_tmp.html"],
                                     options, parse_regulations_guidelines,
-                                    html_to_pdf)
+                                    html_to_pdf, merged=options.merged)
         # errors, warnings = generate_htmltopdf(input_regulations, input_guidelines, options)
     elif options.target == "json":
         check_output(options.output)
         errors, warnings = generate(WCADocumentJSON,
                                     (input_regulations, input_guidelines),
                                     ["wca-regulations.json"],
-                                    options, parse_regulations_guidelines)
+                                    options, parse_regulations_guidelines, merged=options.merged)
     elif options.target == "check" or options.diff:
         print("Checking input file(s)...")
         astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
