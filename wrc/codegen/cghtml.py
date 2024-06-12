@@ -89,11 +89,14 @@ def simple_md2html(text, urls):
 class WCADocumentHtml(CGDocument):
     ''' Emit html formatted to fit in the WCA website.  '''
     name = "HTML"
-    def __init__(self, versionhash, language, pdf):
+
+    def __init__(self, versionhash, language, pdf, merged=False):
         super(WCADocumentHtml, self).__init__(str)
         self.regset = set()
-        self.urls = {'regulations': './', 'guidelines': './guidelines.html',
-                     'pdf': pdf}
+        if merged:
+            self.urls = {'regulations': './full', 'guidelines': './full', 'pdf': pdf}
+        else:
+            self.urls = {'regulations': './', 'guidelines': './guidelines.html', 'pdf': pdf}
         self.language = language
 
         is_translation = (language != "english")
@@ -223,7 +226,3 @@ class WCADocumentHtml(CGDocument):
     def emit(self, ast_reg, ast_guide):
         self.regset = Ruleset().get(ast_reg)
         return super(WCADocumentHtml, self).emit(ast_reg, ast_guide)
-
-
-
-
