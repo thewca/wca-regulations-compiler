@@ -42,8 +42,7 @@ If you want to use `wrc-states` from the source, an easy way to do this is to ru
 
 (section for maintainers in PyPi)
 
-- Bump the version number in `wrc/version.py`
-- Clean the `dist` and `wrc.egg_info` directories
-- `python setup.py egg_info`
-- `python setup.py sdist bdist_wheel`
+- Bump the version number in `wrc/version.py` and in `pyproject-toml`
+- (optional, depends on your environment) `pip install --upgrade build`
+- `python -m build`
 - `twine upload dist/*`

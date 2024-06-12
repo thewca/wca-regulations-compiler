@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wrc"
+version = "1.5.0"
+dependencies = [
+    "ply>=3.7",
+    "unidecode"
+]
+authors = [
+  { name="Philippe Virouleau", email="philippe.44@gmail.com" },
+  { name="WCA Software Team", email="software@worldcubeassociation.org" }
+]
+description = "Tool to build and perform checks on WCA Regulations and Guidelines"
+readme = "README.md"
+requires-python = ">=3.0"
+
+[project.license]
+text = "GPLv3"
+
+[project.scripts]
+wrc = "wrc.wrc:run"
+wrc-languages = "wrc.wrc:languages"
+wrc-states = "wrc.wrc:states"
+
+[project.urls]
+Homepage = "https://github.com/thewca/wca-regulations-compiler"
+Issues = "https://github.com/thewca/wca-regulations-compiler/issues"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = false
+
+[tool.setuptools.packages.find]
+namespaces = false
+
+[tool.setuptools.package-data]
+wrc = [
+    "data/*",
+]
