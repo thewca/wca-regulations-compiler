@@ -22,8 +22,8 @@ Here are some sample invocations:
 `wrc path/to/wca-regulations --target=check`
 - To build the html to the `build` directory:
 `wrc path/to/wca-regulations --target=html --output=build`
-- To build the merged html (containing both documents) to the `build` directory:
-`wrc path/to/wca-regulations --target=merged --output=build`
+- To merge the Regulations and Guidelines into a single document (works with html, pdf and json targets):
+`wrc path/to/wca-regulations --target=html --output=build --merged`
 - When building translation it's necessary to provide the language (to choose the appropriate font/pdf names):
 `wrc path/to/wca-regulations-translations/french --language=french --target=pdf --output=build`
 - Check that a translation matches exactly the original rules:
