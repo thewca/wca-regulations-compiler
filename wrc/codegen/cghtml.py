@@ -94,7 +94,7 @@ class WCADocumentHtml(CGDocument):
         super(WCADocumentHtml, self).__init__(str)
         self.regset = set()
         if merged:
-            self.urls = {'regulations': './', 'guidelines': './', 'pdf': f'../{pdf}'}
+            self.urls = {'regulations': './', 'guidelines': './', 'pdf': pdf}
         else:
             self.urls = {'regulations': './', 'guidelines': './guidelines.html', 'pdf': pdf}
         self.language = language
