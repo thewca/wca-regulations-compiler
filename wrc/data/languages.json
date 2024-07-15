@@ -4,160 +4,183 @@
     "native": "English",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "chinese": {
     "name": "Chinese",
     "native": "Chinese",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "chinese-traditional": {
     "name": "Chinese, Traditional",
     "native": "Chinese, Traditional",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "croatian": {
     "name": "Croatian",
     "native": "Hrvatski",
     "regulations": "Pravilnik",
     "guidelines": "Smjernice",
-    "pdf": "wca-pravilnik-i-smjernice"
+    "pdf": "wca-pravilnik-i-smjernice",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "dutch": {
     "name": "Dutch",
     "native": "Nederlands",
     "regulations": "Wedstrijdreglementen",
     "guidelines": "Richtlijnen",
-    "pdf": "wca-reglementen-en-richtlijnen"
+    "pdf": "wca-reglementen-en-richtlijnen",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "finnish": {
     "name": "Finnish",
     "native": "Suomi",
     "regulations": "Säännöt",
     "guidelines": "Ohjesäännöt",
-    "pdf": "wca-saannot-ja-ohjesaannot"
+    "pdf": "wca-saannot-ja-ohjesaannot",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "french": {
     "name": "French",
     "native": "Français",
     "regulations": "Règlement",
     "guidelines": "Recommandations",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "german": {
     "name": "German",
     "native": "Deutsch",
     "regulations": "Regeln",
     "guidelines": "Richtlinien",
-    "pdf": "wca-regeln-und-richtlinien"
+    "pdf": "wca-regeln-und-richtlinien",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "hungarian": {
     "name": "Hungarian",
     "native": "magyar",
     "regulations": "Szabályzat",
     "guidelines": "Útmutató",
-    "pdf": "wca-szabalyzat-es-utmutato"
+    "pdf": "wca-szabalyzat-es-utmutato",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "indonesian": {
     "name": "Indonesian",
     "native": "Indonesian",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "italian": {
     "name": "Italian",
     "native": "Italiano",
     "regulations": "Regolamento",
     "guidelines": "Linee Guida",
-    "pdf": "regolamento-e-linee-guida-wca"
+    "pdf": "regolamento-e-linee-guida-wca",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "japanese": {
     "name": "Japanese",
     "native": "Japanese",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "kazakh": {
     "name": "Kazakh",
     "native": "Қазақ",
     "regulations": "Eреже",
     "guidelines": "Қосымша",
-    "pdf": "wca-ереже-және-қосымша"
+    "pdf": "wca-ереже-және-қосымша",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "korean": {
     "name": "Korean",
     "native": "Korean",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "russian": {
     "name": "Russian",
     "native": "Russian",
     "regulations": "Regulations",
     "guidelines": "Guidelines",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "spanish-european": {
     "name": "Spanish (European)",
     "native": "Español de España",
     "regulations": "Reglamento",
     "guidelines": "Directrices",
-    "pdf": "wca-reglamento-y-directrices"
+    "pdf": "wca-reglamento-y-directrices",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "spanish-american": {
     "name": "Spanish (American)",
     "native": "Español Americano",
     "regulations": "Reglamento",
     "guidelines": "Directrices",
-    "pdf": "wca-reglamento-y-directrices"
+    "pdf": "wca-reglamento-y-directrices",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "swedish": {
     "name": "Swedish",
     "native": "Svenska",
     "regulations": "Riktlinjer",
     "guidelines": "Regler",
-    "pdf": "wca-regler-och-riktlinjer"
+    "pdf": "wca-regler-och-riktlinjer",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "belarusian": {
     "name": "Belarusian",
     "native": "Беларуская мова",
     "regulations": "Палажэнні",
     "guidelines": "Дапаўненні да Палажэнняў",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations-appended-guidelines",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "vietnamese": {
     "name": "Vietnamese",
     "native": "Tiếng Việt",
     "regulations": "Quy định",
     "guidelines": "Hướng dẫn",
-    "pdf": "quy-dinh-va-huong-dan-WCA"
+    "pdf": "quy-dinh-va-huong-dan-WCA",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "portuguese-european": {
     "name": "Portuguese (European)",
     "native": "Português Europeu",
     "regulations": "Regulamentos",
     "guidelines": "Orientações",
-    "pdf": "wca-regulamentos-e-orientacoes"
+    "pdf": "wca-regulamentos-e-orientacoes",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "portuguese-brazilian": {
     "name": "Portuguese (Brazilian)",
     "native": "Português do Brasil",
     "regulations": "Regulamentos",
     "guidelines": "Orientações",
-    "pdf": "wca-regulamentos-e-orientacoes"
+    "pdf": "wca-regulamentos-e-orientacoes",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   },
   "slovenian": {
     "name": "Slovenian",
     "native": "Slovenščina",
     "regulations": "Pravilnik",
     "guidelines": "Smernice",
-    "pdf": "wca-pravilnik-in-smernice"
+    "pdf": "wca-pravilnik-in-smernice",
+    "pdfMerged": "wca-regulations-merged-guidelines"
   }
 }
