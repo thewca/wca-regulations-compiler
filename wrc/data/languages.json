@@ -159,5 +159,12 @@
     "regulations": "Pravilnik",
     "guidelines": "Smernice",
     "pdf": "wca-pravilnik-in-smernice"
+  },
+  "ukrainian": {
+    "name": "Ukrainian",
+    "native": "Українська",
+    "regulations": "Положення",
+    "guidelines": "Керівні Принципи",
+    "pdf": "wca-положення-та-керівні-принципи"
   }
 }
