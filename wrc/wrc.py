@@ -92,6 +92,8 @@ def generate(backend_class, inputs, outputs, options, parsing_method, post_proce
         print(("Compiled document, generating " +
                backend_class.name + "..."))
         languages_options = languages(False)[options.language]
+        if merged:
+            languages_options["pdf"] += ".merged"
         if backend_class is WCADocumentHtml:
             # Other subclasses of CGDocument do not have a "merged" constructor parameter.
             cg_instance = backend_class(options.git_hash, options.language,
