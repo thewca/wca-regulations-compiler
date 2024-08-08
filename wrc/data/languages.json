@@ -162,9 +162,16 @@
   },
   "ukrainian": {
     "name": "Ukrainian",
-    "native": "Українська",
+    "native": "Українська мова",
     "regulations": "Положення",
     "guidelines": "Керівні Принципи",
     "pdf": "wca-положення-та-керівні-принципи"
+  },
+  "malayalam": {
+    "name": "Malayalam",
+    "native": "",
+    "regulations": "",
+    "guidelines": "",
+    "pdf": ""
   }
 }
