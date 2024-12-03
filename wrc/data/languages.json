@@ -159,6 +159,13 @@
     "regulations": "Pravilnik",
     "guidelines": "Smernice",
     "pdf": "wca-pravilnik-in-smernice"
+  },
+  "polish": {
+    "name": "Polish",
+    "native": "Polski",
+    "regulations": "Regulamin",
+    "guidelines": "Wytyczne",
+    "pdf": "wca-regulamin-i-wytyczne"
   }
 }
 
