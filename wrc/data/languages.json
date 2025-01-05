@@ -160,11 +160,12 @@
     "guidelines": "Smernice",
     "pdf": "wca-pravilnik-in-smernice"
   },
-  "ukrainian": {
-    "name": "Ukrainian",
-    "native": "Українська",
-    "regulations": "Положення",
-    "guidelines": "Керівні Принципи",
-    "pdf": "wca-положення-та-керівні-принципи"
+  "polish": {
+    "name": "Polish",
+    "native": "Polski",
+    "regulations": "Regulamin",
+    "guidelines": "Wytyczne",
+    "pdf": "wca-regulamin-i-wytyczne"
   }
 }
+
