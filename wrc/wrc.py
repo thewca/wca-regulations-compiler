@@ -206,9 +206,9 @@ def files_from_dir(file_or_directory):
             print("Error: couldn't detect if the input file are Regulations or Guidelines.")
             sys.exit(1)
     else:
-        print("Error: %s is not a file or a directory." % file_or_directory)
-        sys.exit(1)
-    return (regulations, guidelines)
+        print(f"Warning: {file_or_directory} is not a file or a directory. Ignoring.")
+        sys.exit(0)
+    return regulations, guidelines
 
 
 def check_output(directory):
