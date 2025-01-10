@@ -17,7 +17,7 @@ from .version import __version__
 REGULATIONS_FILENAME = "wca-regulations.md"
 GUIDELINES_FILENAME = "wca-guidelines.md"
 STATES_FILENAME = "wca-states.md"
-LANGUAGES_JSON_URL = "https://raw.githubusercontent.com/thewca/wca-regulations-compiler/refs/heads/main/wrc/data/languages.json"
+LANGUAGES_JSON_URL = "https://raw.githubusercontent.com/thewca/wca-regulations-compiler/main/wrc/data/languages.json"
 URLLIB_REQUEST_TIMEOUT = 8
 
 
