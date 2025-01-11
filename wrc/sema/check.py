@@ -106,6 +106,8 @@ class ReferenceCheck(SemaAnalysis):
     """
     def __init__(self):
         super(ReferenceCheck, self).__init__()
+        self.visited_regulations = False
+        self.visited_guidelines = False
         self.rules_references = {}
         self.articles_references = {}
         # Example: self.rules_references = {
@@ -120,18 +122,31 @@ class ReferenceCheck(SemaAnalysis):
         self.err_invalid_reference = "%s has an invalid reference: '%s'"
         self.err_uppercase_section = "got reference '%s' in %s, but '%s' must be all lowercase"
 
+    def visit(self, o):
+        if isinstance(o, WCARegulations):
+            self.visited_regulations = True
+        elif isinstance(o, WCAGuidelines):
+            self.visited_guidelines = True
+        return super(ReferenceCheck, self).visit(o)
+
     def visitArticle(self, article):
 
         # Mark article as found.
         if article.number in self.articles_references:
-            self.articles_references[article.number].found = True
+            self.articles_references[article.number]["found"] = True
         else:
             self.articles_references[article.number] = {
                 "found": True,
                 "referenced_by": []
             }
 
-        return True
+        return super(ReferenceCheck, self).visitArticle(article)
+
+    def visitRegulation(self, reg):
+        return self.visitRule(reg) and super(ReferenceCheck, self).visit(reg.children)
+
+    def visitGuideline(self, reg):
+        return self.visitRule(reg) and super(ReferenceCheck, self).visit(reg.children)
 
     def visitRule(self, visited_rule):
 
@@ -162,7 +177,7 @@ class ReferenceCheck(SemaAnalysis):
                 dictionary = self.rules_references
 
             if referenced_node_number in dictionary:
-                dictionary[referenced_node_number].referenced_by.append(visited_rule.number)
+                dictionary[referenced_node_number]["referenced_by"].append(visited_rule.number)
             else:
                 dictionary[referenced_node_number] = {
                     "found": False,
@@ -171,7 +186,7 @@ class ReferenceCheck(SemaAnalysis):
 
         # Mark the current rule as found.
         if visited_rule.number in self.rules_references:
-            self.rules_references[visited_rule.number].found = True
+            self.rules_references[visited_rule.number]["found"] = True
         else:
             self.rules_references[visited_rule.number] = {
                 "found": True,
@@ -181,13 +196,14 @@ class ReferenceCheck(SemaAnalysis):
         return True
 
     def end_of_document(self, document):
-        # Check if a referenced node was not found.
-        for rule_number, rule_data in self.rules_references.items():
-            if not rule_data.found:
-                self.errors.append(self.err_missing_referenced_rule % (rule_number, rule_data.referenced_by))
+        if self.visited_regulations and self.visited_guidelines:
+            # Check if a referenced node was not found.
+            for rule_number, rule_data in self.rules_references.items():
+                if not rule_data["found"]:
+                    self.errors.append(self.err_missing_referenced_rule % (rule_number, rule_data["referenced_by"]))
 
-        for article_number, article_data in self.articles_references.items():
-            if not article_data.found:
-                self.errors.append(self.err_missing_referenced_article % (article_number, article_data.referenced_by))
+            for article_number, article_data in self.articles_references.items():
+                if not article_data["found"]:
+                    self.errors.append(self.err_missing_referenced_article % (article_number, article_data["referenced_by"]))
 
         return True
