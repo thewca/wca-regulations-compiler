@@ -7,7 +7,7 @@ from wrc.parse.lexer import WCALexer
 from wrc.sema.ast import WCAGuidelines, WCARegulations, WCAStates, Section,\
                          Subsection, TableOfContent, Regulation, Guideline,\
                          Article, LabelDecl, StatesList, State
-from wrc.sema.check import HierarchyCheck, LabelCheck
+from wrc.sema.check import HierarchyCheck, LabelCheck, ReferenceCheck
 
 class WCAParser(object):
     ''' Main parser class. Uses WCALexer and yacc to build the AST.'''
@@ -18,9 +18,12 @@ class WCAParser(object):
         self.doctype = WCARegulations
         self.errors = []
         self.warnings = []
+        # We want to keep the state of ReferenceCheck when visiting WCARegulations and WCAGuidelines,
+        # because those documents have cross-references.
+        reference_checker = ReferenceCheck()
         self.sema = {WCAStates : [],
-                     WCARegulations : [HierarchyCheck],
-                     WCAGuidelines : [HierarchyCheck, LabelCheck]}
+                     WCARegulations : [HierarchyCheck, reference_checker],
+                     WCAGuidelines : [HierarchyCheck, LabelCheck, reference_checker]}
         self.toc = None
 
         # Rules hierarchy related variables
@@ -39,10 +42,10 @@ class WCAParser(object):
 
 
     def parse(self, data, doctype):
-        '''
+        """
         Parse an input string, and return an AST
         doctype must have WCADocument as a baseclass
-        '''
+        """
         self.doctype = doctype
         self.lexer.lineno = 0
         del self.errors[:]
@@ -55,12 +58,23 @@ class WCAParser(object):
             self.errors.append("Couldn't build AST.")
         else:
             for check in self.sema[self.doctype]:
-                visitor = check()
+                visitor = self._get_visitor(check)
                 if not visitor.visit(ast):
                     self.errors.append("Couldn't visit AST.")
                 self.errors.extend(visitor.errors)
+                del visitor.errors[:]
                 self.warnings.extend(visitor.warnings)
+                del visitor.warnings[:]
         return (ast, list(self.errors), list(self.warnings))
+
+    @staticmethod
+    def _get_visitor(check):
+        if isinstance(check, ReferenceCheck):
+            visitor = check
+        else:
+            visitor = check()
+
+        return visitor
 
     def _act_on_list(self, lhs):
         '''
