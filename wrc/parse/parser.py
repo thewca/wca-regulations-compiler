@@ -18,12 +18,9 @@ class WCAParser(object):
         self.doctype = WCARegulations
         self.errors = []
         self.warnings = []
-        # We want to keep the state of ReferenceCheck when visiting WCARegulations and WCAGuidelines,
-        # because those documents have cross-references.
-        reference_checker = ReferenceCheck()
         self.sema = {WCAStates : [],
-                     WCARegulations : [HierarchyCheck, reference_checker],
-                     WCAGuidelines : [HierarchyCheck, LabelCheck, reference_checker]}
+                     WCARegulations : [HierarchyCheck, ReferenceCheck],
+                     WCAGuidelines : [HierarchyCheck, LabelCheck, ReferenceCheck]}
         self.toc = None
 
         # Rules hierarchy related variables
@@ -58,23 +55,12 @@ class WCAParser(object):
             self.errors.append("Couldn't build AST.")
         else:
             for check in self.sema[self.doctype]:
-                visitor = self._get_visitor(check)
+                visitor = check()
                 if not visitor.visit(ast):
                     self.errors.append("Couldn't visit AST.")
                 self.errors.extend(visitor.errors)
-                del visitor.errors[:]
                 self.warnings.extend(visitor.warnings)
-                del visitor.warnings[:]
         return (ast, list(self.errors), list(self.warnings))
-
-    @staticmethod
-    def _get_visitor(check):
-        if isinstance(check, ReferenceCheck):
-            visitor = check
-        else:
-            visitor = check()
-
-        return visitor
 
     def _act_on_list(self, lhs):
         '''

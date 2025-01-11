@@ -97,30 +97,47 @@ class LabelCheck(SemaAnalysis):
 
 class ReferenceCheck(SemaAnalysis):
     """
-    Reference checker:
+    Reference checker (Singleton):
     * Avoid rules referencing other non-existent/removed rules.
     * Avoid invalid references (e.g. 'regulations:guideline:...', 'guidelines:regulation:...' or 'REgulations:...:...').
 
     A "node" may be either an article or a rule.
     A "rule" may be either a regulation or a guideline (they are handled the same way).
     """
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if not isinstance(cls._instance, cls):
+            cls._instance = object.__new__(cls)
+        else:
+            cls._instance.errors.clear()
+            cls._instance.warnings.clear()
+        return cls._instance
+
     def __init__(self):
         super(ReferenceCheck, self).__init__()
         self.visited_regulations = False
         self.visited_guidelines = False
-        self.rules_references = {}
-        self.articles_references = {}
+
         # Example: self.rules_references = {
         #   "1a": {"found": bool, "referenced_by": list[str]},
-        #   ...
         # }
-        # The same applies to self.articles_references.
-        self.node_reference_regex = re.compile(r"(regulations|guidelines):(article|regulation|guideline):([a-z0-9]+\+*)",
-                                               re.IGNORECASE)
-        self.err_missing_referenced_rule = "Rule %s is referenced in %s, but was not found"
-        self.err_missing_referenced_article = "Article %s is referenced in %s, but was not found"
+        self.rules_references = {}
+        self.articles_references = {}
+
+        self.reference_regex = re.compile(r"\[.*]\((\w+:(\w+):(\w+))\)", re.IGNORECASE)
+        # Examples of valid sections:
+        # 'regulations:regulation:1a'
+        # 'guidelines:guideline:5b5f+'
+        # 'regulations:article:12'
+        # 'guidelines:article:A'
+        # We are not too strict on the format of the article/rule number here.
+        self.valid_sections_regex = re.compile(
+            r"((?:regulations:regulation|guidelines:guideline):[A-Za-z0-9]+\+*)|((?:regulations|guidelines):article:(?:[A-Z]+|[0-9]+))"
+        )
+
+        # Logger errors.
+        self.err_missing_referenced = "%s %s is referenced in %s, but was not found"
         self.err_invalid_reference = "%s has an invalid reference: '%s'"
-        self.err_uppercase_section = "got reference '%s' in %s, but '%s' must be all lowercase"
 
     def visit(self, o):
         if isinstance(o, WCARegulations):
@@ -130,16 +147,7 @@ class ReferenceCheck(SemaAnalysis):
         return super(ReferenceCheck, self).visit(o)
 
     def visitArticle(self, article):
-
-        # Mark article as found.
-        if article.number in self.articles_references:
-            self.articles_references[article.number]["found"] = True
-        else:
-            self.articles_references[article.number] = {
-                "found": True,
-                "referenced_by": []
-            }
-
+        self._mark_node_as_found(article.number, self.articles_references)
         return super(ReferenceCheck, self).visitArticle(article)
 
     def visitRegulation(self, reg):
@@ -150,60 +158,61 @@ class ReferenceCheck(SemaAnalysis):
 
     def visitRule(self, visited_rule):
 
+        self._mark_node_as_found(visited_rule.number, self.rules_references)
+
         # Check references to other rules.
-        for match in self.node_reference_regex.finditer(visited_rule.text):
-            full_reference = match.group(0)
-            document_type = match.group(1)  # (regulations|guidelines)
-            node_type = match.group(2)      # (article|regulation|guideline)
-            referenced_node_number = match.group(3)
-            document_type_lower = document_type.lower()
-            node_type_lower = node_type.lower()
+        # We first match Markdown links that look like '[...](...:...:...)'.
+        # The part within round brackets is the reference.
+        for match in self.reference_regex.finditer(visited_rule.text):
+            full_reference = match.group(1)
 
-            # Check uppercase sections (the first two parts of a reference).
-            if document_type != document_type_lower:
-                self.errors.append(self.err_uppercase_section % (full_reference, visited_rule.number, document_type))
-            if node_type != node_type_lower:
-                self.errors.append(self.err_uppercase_section % (full_reference, visited_rule.number, node_type))
-
-            # Check invalid reference sections.
-            if (document_type_lower == "regulations" and node_type_lower == "guideline") or (
-                    document_type_lower == "guidelines" and node_type_lower == "regulation"):
+            # Check if the sections of the reference are valid.
+            if not self.valid_sections_regex.fullmatch(full_reference):
                 self.errors.append(self.err_invalid_reference % (visited_rule.number, full_reference))
+                continue
 
-            # Handle reference dictionary.
-            if node_type_lower == "article":
+            node_type = match.group(2).lower()  # (article|regulation|guideline)
+            referenced_node_number = match.group(3)
+
+            if node_type == "article":
                 dictionary = self.articles_references
             else:
                 dictionary = self.rules_references
 
-            if referenced_node_number in dictionary:
-                dictionary[referenced_node_number]["referenced_by"].append(visited_rule.number)
-            else:
-                dictionary[referenced_node_number] = {
-                    "found": False,
-                    "referenced_by": [visited_rule.number]
-                }
-
-        # Mark the current rule as found.
-        if visited_rule.number in self.rules_references:
-            self.rules_references[visited_rule.number]["found"] = True
-        else:
-            self.rules_references[visited_rule.number] = {
-                "found": True,
-                "referenced_by": []
-            }
+            self._add_reference_to_dictionary(referenced_node_number, visited_rule.number, dictionary)
 
         return True
 
     def end_of_document(self, document):
         if self.visited_regulations and self.visited_guidelines:
-            # Check if a referenced node was not found.
-            for rule_number, rule_data in self.rules_references.items():
-                if not rule_data["found"]:
-                    self.errors.append(self.err_missing_referenced_rule % (rule_number, rule_data["referenced_by"]))
-
-            for article_number, article_data in self.articles_references.items():
-                if not article_data["found"]:
-                    self.errors.append(self.err_missing_referenced_article % (article_number, article_data["referenced_by"]))
+            self._append_errors_from_dictionary("Rule", self.rules_references)
+            self._append_errors_from_dictionary("Article", self.articles_references)
 
         return True
+
+    def _append_errors_from_dictionary(self, node_type: str, dictionary: dict) -> None:
+        for node_number, node_data in dictionary.items():
+            if not node_data["found"]:
+                self.errors.append(
+                    self.err_missing_referenced % (node_type, node_number, node_data["referenced_by"])
+                )
+
+    @staticmethod
+    def _add_reference_to_dictionary(referenced_node_number: str, referencing_node_number: str, dictionary: dict) -> None:
+        if referenced_node_number in dictionary:
+            dictionary[referenced_node_number]["referenced_by"].append(referencing_node_number)
+        else:
+            dictionary[referenced_node_number] = {
+                "found": False,
+                "referenced_by": [referencing_node_number]
+            }
+
+    @staticmethod
+    def _mark_node_as_found(node_number: str, dictionary: dict) -> None:
+        if node_number in dictionary:
+            dictionary[node_number]["found"] = True
+        else:
+            dictionary[node_number] = {
+                "found": True,
+                "referenced_by": []
+            }
