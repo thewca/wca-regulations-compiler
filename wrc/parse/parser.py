@@ -62,7 +62,9 @@ class WCAParser(object):
                 if not visitor.visit(ast):
                     self.errors.append("Couldn't visit AST.")
                 self.errors.extend(visitor.errors)
+                del visitor.errors[:]
                 self.warnings.extend(visitor.warnings)
+                del visitor.warnings[:]
         return (ast, list(self.errors), list(self.warnings))
 
     @staticmethod
