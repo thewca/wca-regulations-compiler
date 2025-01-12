@@ -105,13 +105,19 @@ class ReferenceCheck(SemaAnalysis):
     A "rule" may be either a regulation or a guideline (they are handled the same way).
     """
     _instance = None
-    def __new__(cls, *args, **kwargs):
-        if not isinstance(cls._instance, cls):
-            cls._instance = object.__new__(cls)
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
         else:
+            # The parser (client of this class) accumulates the errors after visiting an entire WCADocument.
+            # Here we are keeping state, so we want to avoid duplicated errors and warnings.
             cls._instance.errors.clear()
             cls._instance.warnings.clear()
+
         return cls._instance
+
 
     def __init__(self):
         super(ReferenceCheck, self).__init__()
@@ -124,7 +130,7 @@ class ReferenceCheck(SemaAnalysis):
         self.rules_references = {}
         self.articles_references = {}
 
-        self.reference_regex = re.compile(r"\[.*]\((\w+:(\w+):(\w+))\)", re.IGNORECASE)
+        self.reference_regex = re.compile(r"\[[^\n\r\[\]]*]\((\w+:(\w+):(\w+\+*))\)", re.IGNORECASE)
         # Examples of valid sections:
         # 'regulations:regulation:1a'
         # 'guidelines:guideline:5b5f+'
@@ -174,17 +180,13 @@ class ReferenceCheck(SemaAnalysis):
             node_type = match.group(2).lower()  # (article|regulation|guideline)
             referenced_node_number = match.group(3)
 
-            if node_type == "article":
-                dictionary = self.articles_references
-            else:
-                dictionary = self.rules_references
-
-            self._add_reference_to_dictionary(referenced_node_number, visited_rule.number, dictionary)
+            self._add_reference_to_dictionary(referenced_node_number, visited_rule.number, node_type)
 
         return True
 
     def end_of_document(self, document):
         if self.visited_regulations and self.visited_guidelines:
+            # Find references to missing nodes.
             self._append_errors_from_dictionary("Rule", self.rules_references)
             self._append_errors_from_dictionary("Article", self.articles_references)
 
@@ -197,8 +199,12 @@ class ReferenceCheck(SemaAnalysis):
                     self.err_missing_referenced % (node_type, node_number, node_data["referenced_by"])
                 )
 
-    @staticmethod
-    def _add_reference_to_dictionary(referenced_node_number: str, referencing_node_number: str, dictionary: dict) -> None:
+    def _add_reference_to_dictionary(self, referenced_node_number: str, referencing_node_number: str, node_type: str) -> None:
+        if node_type == "article":
+            dictionary = self.articles_references
+        else:
+            dictionary = self.rules_references
+
         if referenced_node_number in dictionary:
             dictionary[referenced_node_number]["referenced_by"].append(referencing_node_number)
         else:

@@ -19,8 +19,8 @@ class WCAParser(object):
         self.errors = []
         self.warnings = []
         self.sema = {WCAStates : [],
-                     WCARegulations : [HierarchyCheck, ReferenceCheck],
-                     WCAGuidelines : [HierarchyCheck, LabelCheck, ReferenceCheck]}
+                     WCARegulations : [HierarchyCheck, ReferenceCheck.get_instance],
+                     WCAGuidelines : [HierarchyCheck, LabelCheck, ReferenceCheck.get_instance]}
         self.toc = None
 
         # Rules hierarchy related variables
