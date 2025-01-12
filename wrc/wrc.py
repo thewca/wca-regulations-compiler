@@ -245,7 +245,7 @@ def build_common_option(argparser):
 def handle_errors_and_warnings(errors, warnings):
     # If some errors or warnings have been detected, output them
     if len(errors) + len(warnings) != 0:
-        print("Couldn't compile file, the following occured:")
+        print("Couldn't compile file, the following occurred:")
         for err in errors:
             print(" - Error: " + err)
         for warn in warnings:

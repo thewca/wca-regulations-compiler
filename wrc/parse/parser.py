@@ -39,10 +39,10 @@ class WCAParser(object):
 
 
     def parse(self, data, doctype):
-        """
+        '''
         Parse an input string, and return an AST
         doctype must have WCADocument as a baseclass
-        """
+        '''
         self.doctype = doctype
         self.lexer.lineno = 0
         del self.errors[:]
