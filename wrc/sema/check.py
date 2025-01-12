@@ -135,10 +135,9 @@ class ReferenceCheck(SemaAnalysis):
         # 'regulations:regulation:1a'
         # 'guidelines:guideline:5b5f+'
         # 'regulations:article:12'
-        # 'guidelines:article:A'
         # We are not too strict on the format of the article/rule number here.
         self.valid_sections_regex = re.compile(
-            r"((?:regulations:regulation|guidelines:guideline):[A-Za-z0-9]+\+*)|((?:regulations|guidelines):article:(?:[A-Z]+|[0-9]+))"
+            r"regulations:regulation:[A-Za-z0-9]+|guidelines:guideline:[A-Za-z0-9]+\++|regulations:article:(?:[A-Z]+|[0-9]+)"
         )
 
         # Logger errors.
