@@ -166,6 +166,13 @@
     "regulations": "Regulamin",
     "guidelines": "Wytyczne",
     "pdf": "wca-regulamin-i-wytyczne"
+  },
+  "thai": {
+    "name": "Thai",
+    "native": "ภาษาไทย",
+    "regulations": "กติกา",
+    "guidelines": "แนวปฏิบัติ",
+    "pdf": "wca-regulations-and-guidelines"
   }
 }
 
