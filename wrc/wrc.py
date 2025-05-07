@@ -3,7 +3,7 @@ import json
 import sys
 import os
 from subprocess import check_call, CalledProcessError
-import pkg_resources
+from importlib.resources import files, as_file
 from .parse.parser import WCAParser
 from .sema.ast import WCARegulations, WCAGuidelines, WCAStates, Ruleset
 from .codegen.cghtml import WCADocumentHtml
@@ -122,10 +122,12 @@ def html_to_pdf(tmp_filenames, output_directory, lang_options):
     wkthml_cmd.extend(["--margin-right", "18"])
     wkthml_cmd.extend(["--page-size", "Letter"])
     # Header and Footer
-    header_file = pkg_resources.resource_filename("wrc", "data/header.html")
-    footer_file = pkg_resources.resource_filename("wrc", "data/footer.html")
-    wkthml_cmd.extend(["--header-html", header_file])
-    wkthml_cmd.extend(["--footer-html", footer_file])
+    header_resource = files("wrc").joinpath("data/header.html")
+    footer_resource = files("wrc").joinpath("data/footer.html")
+    header_file = as_file(header_resource)
+    footer_file = as_file(footer_resource)
+    wkthml_cmd.extend(["--header-html", str(header_file)])
+    wkthml_cmd.extend(["--footer-html", str(footer_file)])
     wkthml_cmd.extend(["--header-spacing", "8"])
     wkthml_cmd.extend(["--footer-spacing", "8"])
     wkthml_cmd.extend(["--enable-local-file-access"])
@@ -219,7 +221,7 @@ def check_output(directory):
 
 def languages(display=True):
     # Get information about languages from the config file (tex encoding, pdf filename, etc)
-    languages_json_str = pkg_resources.resource_string(__name__, "data/languages.json").decode('utf-8')
+    languages_json_str = files(__package__).joinpath("data/languages.json").read_text(encoding="utf-8")
     languages_info = json.loads(languages_json_str)
 
     if display:

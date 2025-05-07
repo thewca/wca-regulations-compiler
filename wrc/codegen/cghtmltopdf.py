@@ -1,6 +1,6 @@
 ''' Backend for PDF using html. '''
 import os.path
-import pkg_resources
+from importlib.resources import files, as_file
 from wrc.sema.ast import Rule, LabelDecl, Article
 from wrc.codegen.cghtml import WCADocumentHtml
 
@@ -120,13 +120,13 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
         fonts = {'normal': 'cmunrm.otf', 'italic': 'cmunti.otf',
                  'bold': 'cmunbx.otf', 'bi': 'cmunbi.otf'}
         for name in fonts.keys():
-            fontfile = pkg_resources.resource_filename("wrc", "data/" + fonts[name])
+            fontfile = as_file(files("wrc").joinpath(f"data/{filename}"))
             if not os.path.isabs(fontfile):
                 fontfile = os.path.abspath(fontfile)
             fonts[name] = fontfile
         self.codegen += CSS_FONTS.format(normal=fonts['normal'], bold=fonts['bold'],
                                          italic=fonts['italic'], bi=fonts['bi'])
-        self.codegen += pkg_resources.resource_string("wrc", "data/htmltopdf.css").decode("utf-8")
+        self.codegen += files("wrc").joinpath("data/htmltopdf.css").read_text(encoding="utf-8")
         self.codegen += '</style></head><body class="%s"><div>\n' % self.language
         self.codegen += HTML_TITLE.format(title=TITLE, author=AUTHOR)
         retval = super(WCADocumentHtmlToPdf, self).visitWCARegulations(document)
