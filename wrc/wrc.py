@@ -316,8 +316,8 @@ def run():
                                     options, parse_regulations_guidelines, merged=options.merged)
     elif options.target == "pdf":
         check_output(options.output)
-        if not input_regulations or not input_guidelines:
-            print("Error: both the Regulations and Guidelines are needed "
+        if not input_regulations:
+            print("Error: At least the Regulations are needed "
                   "to generate the pdf file.")
             sys.exit(1)
         errors, warnings = generate(WCADocumentHtmlToPdf,
