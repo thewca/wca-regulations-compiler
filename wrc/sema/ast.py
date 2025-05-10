@@ -101,8 +101,8 @@ class Regulation(Rule):
         super(Regulation, self).__init__(number, text, parent)
 
 class Guideline(Rule):
-    def __init__(self, number, text, labelname):
-        super(Guideline, self).__init__(number, text, None)
+    def __init__(self, number, text, labelname, parent):
+        super(Guideline, self).__init__(number, text, parent)
         self.labelname = labelname
 
     @property

@@ -107,10 +107,12 @@ class WCALexer(object):
 
     def t_GUIDELINE(self, token):
         r'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+[+]+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?[^ ])\n'
+        indents = token.lexer.lexmatch.group("indents")
+        indents = len(indents)//4 if indents else 0
         reg = token.lexer.lexmatch.group("reg")
         text = token.lexer.lexmatch.group("text")
         label = token.lexer.lexmatch.group("label")
-        token.value = (0, reg, text, label)
+        token.value = (indents, reg, text, label)
         token.lexer.lineno += 1
         return token
 
