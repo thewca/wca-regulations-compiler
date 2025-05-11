@@ -39,9 +39,7 @@ class HierarchyCheck(SemaAnalysis):
         last = self.lastrule[-1]
         # Here parent cannot be none, it's either another regulation or an article
         # (both have a "number" member)
-        if (not reg.number.startswith(reg.parent.number) or
-                (self.rootnode_type == WCARegulations and
-                 reg.parent.depth() + 1 != reg.depth())):
+        if not reg.number.startswith(reg.parent.number):
             self.errors.append(self.err_misplaced %
                                (str(reg.__class__.__name__),
                                 reg.number,
@@ -51,11 +49,6 @@ class HierarchyCheck(SemaAnalysis):
                                (str(reg.__class__.__name__),
                                 reg.number,
                                 last.number))
-        if self.rootnode_type == WCAGuidelines and reg.number.count('+') == 0:
-            self.errors.append(self.err_reg_in_guide % (reg.number))
-
-        if self.rootnode_type == WCARegulations and reg.number.count('+') != 0:
-            self.errors.append(self.err_guide_in_reg % (reg.number))
 
         self.lastrule[-1] = reg
         return True
