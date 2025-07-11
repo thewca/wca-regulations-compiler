@@ -125,12 +125,26 @@
     "guidelines": "Regler",
     "pdf": "wca-regler-och-riktlinjer"
   },
+  "thai": {
+    "name": "Thai",
+    "native": "ภาษาไทย",
+    "regulations": "แนวปฏิบัติตามกติกาการแข่งขันของสมาคมลูกบาศก์โลก",
+    "guidelines": "กติากาการแข่งขันของสมาคมลูกบาศก์โลก",
+    "pdf": "wca-regulations-and-guidelines"
+  },
   "belarusian": {
     "name": "Belarusian",
     "native": "Беларуская мова",
     "regulations": "Палажэнні",
     "guidelines": "Дапаўненні да Палажэнняў",
     "pdf": "wca-regulations-and-guidelines"
+   },
+  "ukrainian": {
+    "name": "Ukrainian",
+    "native": "українська",
+    "regulations": "Правила WCA",
+    "guidelines": "Роз'яснення WCA",
+    "pdf": "wca-regulations-and-guidelines"   
   },
   "vietnamese": {
     "name": "Vietnamese",
