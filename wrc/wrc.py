@@ -230,6 +230,8 @@ def languages(display=True):
             languages_json_str = req.read().decode(req.headers.get_content_charset())
     except (urllib.error.HTTPError, urllib.error.URLError) as e:
         print(f"Warning: could not fetch the latest languages.json file, a fallback will be used. Reason: {e.reason}")
+
+        # Get information about languages from the config file (tex encoding, pdf filename, etc)
         languages_json_str = files(__package__).joinpath("data/languages.json").read_text(encoding="utf-8")
 
     languages_info = json.loads(languages_json_str)
