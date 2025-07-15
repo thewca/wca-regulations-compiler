@@ -7,7 +7,7 @@ from wrc.parse.lexer import WCALexer
 from wrc.sema.ast import WCAGuidelines, WCARegulations, WCAStates, Section,\
                          Subsection, TableOfContent, Regulation, Guideline,\
                          Article, LabelDecl, StatesList, State
-from wrc.sema.check import HierarchyCheck, LabelCheck
+from wrc.sema.check import HierarchyCheck, LabelCheck, ReferenceCheck
 
 class WCAParser(object):
     ''' Main parser class. Uses WCALexer and yacc to build the AST.'''
@@ -19,8 +19,8 @@ class WCAParser(object):
         self.errors = []
         self.warnings = []
         self.sema = {WCAStates : [],
-                     WCARegulations : [HierarchyCheck],
-                     WCAGuidelines : [HierarchyCheck, LabelCheck]}
+                     WCARegulations : [HierarchyCheck, ReferenceCheck.get_instance],
+                     WCAGuidelines : [HierarchyCheck, LabelCheck, ReferenceCheck.get_instance]}
         self.toc = None
 
         # Rules hierarchy related variables
