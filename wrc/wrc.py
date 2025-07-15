@@ -1,3 +1,5 @@
+import urllib.request
+import urllib.error
 import argparse
 import json
 import sys
@@ -15,6 +17,8 @@ from .version import __version__
 REGULATIONS_FILENAME = "wca-regulations.md"
 GUIDELINES_FILENAME = "wca-guidelines.md"
 STATES_FILENAME = "wca-states.md"
+LANGUAGES_JSON_URL = "https://raw.githubusercontent.com/thewca/wca-regulations-compiler/main/wrc/data/languages.json"
+URLLIB_REQUEST_TIMEOUT = 8
 
 
 def parse_states(states):
@@ -220,13 +224,22 @@ def check_output(directory):
 
 
 def languages(display=True):
-    # Get information about languages from the config file (tex encoding, pdf filename, etc)
-    languages_json_str = files(__package__).joinpath("data/languages.json").read_text(encoding="utf-8")
+    # First try to fetch the languages.json file from the compiler's repository.
+    try:
+        with urllib.request.urlopen(LANGUAGES_JSON_URL, timeout=URLLIB_REQUEST_TIMEOUT) as req:
+            languages_json_str = req.read().decode(req.headers.get_content_charset())
+    except (urllib.error.HTTPError, urllib.error.URLError) as e:
+        print(f"Warning: could not fetch the latest languages.json file, a fallback will be used. Reason: {e.reason}")
+
+        # Get information about languages from the config file (tex encoding, pdf filename, etc)
+        languages_json_str = files(__package__).joinpath("data/languages.json").read_text(encoding="utf-8")
+
     languages_info = json.loads(languages_json_str)
 
     if display:
         print(" ".join([key for key in list(languages_info.keys()) if key != "english"]))
         sys.exit(0)
+
     return languages_info
 
 
