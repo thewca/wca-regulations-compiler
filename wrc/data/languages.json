@@ -88,7 +88,7 @@
     "native": "Қазақ",
     "regulations": "Eреже",
     "guidelines": "Қосымша",
-    "pdf": "wca-ереже-және-қосымша"
+    "pdf": "wca-ереже"
   },
   "korean": {
     "name": "Korean",
@@ -130,28 +130,28 @@
     "native": "ภาษาไทย",
     "regulations": "แนวปฏิบัติตามกติกาการแข่งขันของสมาคมลูกบาศก์โลก",
     "guidelines": "กติากาการแข่งขันของสมาคมลูกบาศก์โลก",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations"
   },
   "belarusian": {
     "name": "Belarusian",
     "native": "Беларуская мова",
     "regulations": "Палажэнні",
     "guidelines": "Дапаўненні да Палажэнняў",
-    "pdf": "wca-regulations-and-guidelines"
+    "pdf": "wca-regulations"
    },
   "ukrainian": {
     "name": "Ukrainian",
     "native": "українська",
     "regulations": "Правила WCA",
     "guidelines": "Роз'яснення WCA",
-    "pdf": "wca-regulations-and-guidelines"   
+    "pdf": "wca-regulations"
   },
   "vietnamese": {
     "name": "Vietnamese",
     "native": "Tiếng Việt",
     "regulations": "Quy định",
     "guidelines": "Hướng dẫn",
-    "pdf": "quy-dinh-va-huong-dan-WCA"
+    "pdf": "quy-dinh-WCA"
   },
   "portuguese-european": {
     "name": "Portuguese (European)",
