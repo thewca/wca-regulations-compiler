@@ -30,7 +30,7 @@ CSS_FONTS = '''
     font-style: italic, oblique;
 }}
 '''
-TITLE = "WCA Regulations and Guidelines"
+TITLE = "WCA Regulations"
 AUTHOR = "WCA Regulations Committee"
 HTML_TITLE = ('<div class="title">{title}</div>'
               '<div class="author">{author}</div>'

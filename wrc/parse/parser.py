@@ -199,45 +199,45 @@ class WCAParser(object):
     def p_rule(self, rule):
         '''rule : GUIDELINE
                 | REGULATION'''
+        # This is a regulation
+        indentsize = rule[1][0]
+        number = rule[1][1]
+        text = rule[1][2]
+        parent = None
+
+        # If we just "un"nested, shrink the current rule to our level
+        if self.prev_indent > indentsize:
+            self.current_rule = self.current_rule[0:indentsize+1]
+
+        # We just added a nested level, the parent is the list's last elem
+        if self.prev_indent < indentsize:
+            parent = self.current_rule[-1]
+        # Else, if we are nested the parent is the one before the last elem
+        elif len(self.current_rule) > 1:
+            parent = self.current_rule[-2]
+        # Else if we are not nested, then we are a root rule and parent is none
+        # (do nothing as parent is initialized to none)
+
+        # Create the regulation node
         if len(rule[1]) == 4:
             # This is a guideline
-            rule[0] = Guideline(rule[1][1], rule[1][2], rule[1][3])
+            reg = Guideline(rule[1][1], rule[1][2], rule[1][3], parent)
         else:
-            # This is a regulation
-            indentsize = rule[1][0]
-            number = rule[1][1]
-            text = rule[1][2]
-            parent = None
-
-            # If we just "un"nested, shrink the current rule to our level
-            if self.prev_indent > indentsize:
-                self.current_rule = self.current_rule[0:indentsize+1]
-
-            # We just added a nested level, the parent is the list's last elem
-            if self.prev_indent < indentsize:
-                parent = self.current_rule[-1]
-            # Else, if we are nested the parent is the one before the last elem
-            elif len(self.current_rule) > 1:
-                parent = self.current_rule[-2]
-            # Else if we are not nested, then we are a root rule and parent is none
-            # (do nothing as parent is initialized to none)
-
-            # Create the regulation node
             reg = Regulation(number, text, parent)
 
-            # Let our parent knows he has a new child, if we don't have a parent
-            # let's create an item in the article rules list
-            if parent:
-                parent.add_child(reg)
-            else:
-                rule[0] = reg
+        # Let our parent knows he has a new child, if we don't have a parent
+        # let's create an item in the article rules list
+        if parent:
+            parent.add_child(reg)
+        else:
+            rule[0] = reg
 
-            # Unless we nested, pop and replace the last rule by ourself
-            # If we added a nesting level, we just need to add ourself
-            if self.prev_indent >= indentsize:
-                self.current_rule.pop()
-            self.current_rule.append(reg)
-            self.prev_indent = indentsize
+        # Unless we nested, pop and replace the last rule by ourself
+        # If we added a nesting level, we just need to add ourself
+        if self.prev_indent >= indentsize:
+            self.current_rule.pop()
+        self.current_rule.append(reg)
+        self.prev_indent = indentsize
 
     def p_states(self, states):
         '''states : states state
