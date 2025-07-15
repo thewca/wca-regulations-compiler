@@ -23,7 +23,7 @@ def parse_states(states):
     errors = []
     warnings = []
     if states:
-        with open(states) as states_file:
+        with open(states, encoding='utf-8') as states_file:
             states_as_str = states_file.read()
     parser = WCAParser()
     if states_as_str:
@@ -61,7 +61,7 @@ def get_file_as_str(file) -> str:
     * Add EOL to EOF if missing.
     :return: file as string.
     """
-    with open(file) as md_file:
+    with open(file, encoding='utf-8') as md_file:
         file_as_str = md_file.read()
     # FIXME: do we want to just remove tabs from regs?
     file_as_str = file_as_str.replace("\t", "    ")
@@ -81,7 +81,7 @@ def output(result_tuple, outputs, output_dir):
             mode = 'a'
         else:
             output_filename = output_dir + "/" + filename
-        with open(output_filename, mode + '+') as output_file:
+        with open(output_filename, mode + '+', encoding='utf-8') as output_file:
             output_file.write(content)
             print("Successfully written the content to " + output_filename)
 
