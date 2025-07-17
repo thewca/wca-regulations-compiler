@@ -5,5 +5,6 @@ RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkh
 RUN pip install ply unidecode
 COPY . .
 RUN mkdir build
+RUN python -m wrc.wrc ./wca-regulations.md --target=check --output=build
 RUN python -m wrc.wrc ./wca-regulations.md --target=pdf --output=build
 RUN python -m wrc.wrc ./wca-regulations.md --target=html --output=build

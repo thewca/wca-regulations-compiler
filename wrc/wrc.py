@@ -128,10 +128,10 @@ def html_to_pdf(tmp_filenames, output_directory, lang_options):
     # Header and Footer
     header_resource = files("wrc").joinpath("data/header.html")
     footer_resource = files("wrc").joinpath("data/footer.html")
-    header_file = as_file(header_resource)
-    footer_file = as_file(footer_resource)
-    wkthml_cmd.extend(["--header-html", str(header_file)])
-    wkthml_cmd.extend(["--footer-html", str(footer_file)])
+
+    with as_file(header_resource) as header_file, as_file(footer_resource) as footer_file:
+        wkthml_cmd.extend(["--header-html", str(header_file)])
+        wkthml_cmd.extend(["--footer-html", str(footer_file)])
     wkthml_cmd.extend(["--header-spacing", "8"])
     wkthml_cmd.extend(["--footer-spacing", "8"])
     wkthml_cmd.extend(["--enable-local-file-access"])
