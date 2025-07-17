@@ -120,7 +120,7 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
         fonts = {'normal': 'cmunrm.otf', 'italic': 'cmunti.otf',
                  'bold': 'cmunbx.otf', 'bi': 'cmunbi.otf'}
         for name in fonts.keys():
-            resource = files("wrc").joinpath(f"data/{name}")
+            resource = files("wrc").joinpath(f"data/{fonts[name]}")
             with as_file(resource) as fontfile_path:
                 if not os.path.isabs(fontfile_path):
                     fontfile_path = os.path.abspath(fontfile_path)
