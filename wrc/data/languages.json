@@ -97,6 +97,13 @@
     "guidelines": "Guidelines",
     "pdf": "wca-regulations"
   },
+  "persian": {
+    "name": "Persian",
+    "native": "فارسی",
+    "regulations": "مقررات",
+    "guidelines": "رهنمودها",
+    "pdf": "wca-regulations"
+  },
   "russian": {
     "name": "Russian",
     "native": "Russian",
