@@ -106,7 +106,7 @@ class WCALexer(object):
         return token
 
     def t_GUIDELINE(self, token):
-        r'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+[+]+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?[^ ])\n'
+        r'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+[+]\d+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?[^ ])\n'
         indents = token.lexer.lexmatch.group("indents")
         indents = len(indents)//4 if indents else 0
         reg = token.lexer.lexmatch.group("reg")
