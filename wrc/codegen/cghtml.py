@@ -116,9 +116,9 @@ class WCADocumentHtml(CGDocument):
                          '</h2></div></div>\n')
         self.label = ('<li><span class="{name} label label-default">{name}</span> '
                       '{text}</li>\n')
-        self.guideline = ('<li id="{i}"><a href="#{i}">{i}</a>) '
+        self.guideline = ('<li id="{i}"><span id="{j}"><a href="#{i}">{i}</a>) '
                           '<span class="{label} label {linked}">'
-                          '<a {attr}>{label}</a></span> {text}</li>\n')
+                          '<a {attr}>{label}</a></span> {text}</span></li>\n')
         self.regulation = '<li id="{i}"><a href="#{i}">{i}</a>) {text}'
         self.postreg = '</li>\n'
 
@@ -216,7 +216,11 @@ class WCADocumentHtml(CGDocument):
         anchor_attr = 'id="#%s"' % guide.number
         attr = link_attr if linked else anchor_attr
 
+        number_legacy_match = re.match(r'([a-zA-Z0-9]+)[+](\d+)', guide.number)
+        number_legacy = number_legacy_match.group(1) + "+" * int(number_legacy_match.group(2))
+
         self.codegen += self.guideline.format(i=guide.number,
+                                              j=number_legacy,
                                               text=self.md2html(guide.text),
                                               label=guide.labelname,
                                               linked=label_class,
