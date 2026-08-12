@@ -7,6 +7,7 @@ name = "wrc"
 version = "1.7.1"
 dependencies = [
     "ply>=3.7",
+    "polib",
     "unidecode"
 ]
 authors = [
@@ -22,6 +23,7 @@ text = "GPLv3"
 
 [project.scripts]
 wrc = "wrc.wrc:run"
+wrc-bootstrap = "wrc.bootstrap:run"
 wrc-languages = "wrc.wrc:languages"
 wrc-states = "wrc.wrc:states"
 

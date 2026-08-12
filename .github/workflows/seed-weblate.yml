@@ -1,0 +1,83 @@
+name: Seed Weblate
+
+# Bootstraps a Weblate component from the Regulations and the translations that
+# are checked in today. This creates the component; it does not update one that
+# is already there, because that would mean overwriting whatever translators
+# have done since. Keeping a component up to date after the English changes is
+# a msgmerge, not a re-run of this.
+on:
+  workflow_dispatch:
+    inputs:
+      regulations_ref:
+        description: Branch or tag of thewca/wca-regulations to take the English from
+        default: official
+      project:
+        description: Weblate project slug
+        default: wca
+      slug:
+        description: Component slug to create
+        default: regulations
+      name:
+        description: Component display name (unique within the project)
+        default: Regulations
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    # Gives the seed somewhere to hang required reviewers, since it writes to a
+    # live translation server. Delete this line to let it run unattended.
+    environment: weblate
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install the compiler
+        run: pip install .
+
+      # msgfmt is what catalogs.sh validates with, and it is the same check
+      # Weblate applies on import, so it is worth failing here instead.
+      - name: Install gettext
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq gettext
+
+      - uses: actions/checkout@v4
+        with:
+          repository: thewca/wca-regulations
+          ref: ${{ inputs.regulations_ref }}
+          path: wca-regulations
+
+      - uses: actions/checkout@v4
+        with:
+          repository: thewca/wca-regulations-translations
+          path: wca-regulations-translations
+
+      - name: Build the catalogs
+        run: |
+          ./catalogs.sh \
+            wca-regulations/wca-regulations.md \
+            wca-regulations-translations \
+            catalogs
+
+      # Uploaded before the seed so the catalogs are inspectable even when the
+      # upload to Weblate is what failed.
+      - name: Keep the catalogs
+        uses: actions/upload-artifact@v4
+        with:
+          # Not named after the ref: a branch name with a slash in it is not a
+          # legal artifact name, and the run already records which ref it used.
+          name: catalogs
+          path: catalogs/
+
+      - name: Seed Weblate
+        env:
+          WEBLATE_URL: ${{ secrets.WEBLATE_URL }}
+          WEBLATE_TOKEN: ${{ secrets.WEBLATE_TOKEN }}
+          PROJECT: ${{ inputs.project }}
+          SLUG: ${{ inputs.slug }}
+          NAME: ${{ inputs.name }}
+        run: ./seed-weblate.sh catalogs

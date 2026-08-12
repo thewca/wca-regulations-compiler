@@ -8,9 +8,12 @@ from subprocess import check_call, CalledProcessError
 from importlib.resources import files, as_file
 from .parse.parser import WCAParser
 from .sema.ast import WCARegulations, WCAGuidelines, WCAStates, Ruleset
+from .l10n import Catalog, translate_document
 from .codegen.cghtml import WCADocumentHtml
 from .codegen.cghtmltopdf import WCADocumentHtmlToPdf
 from .codegen.cgjson import WCADocumentJSON
+from .codegen.cgmd import WCADocumentMarkdown
+from .codegen.cgpot import WCADocumentPot
 from .codegen.merger import merge_ast
 from .version import __version__
 
@@ -92,6 +95,14 @@ def output(result_tuple, outputs, output_dir):
 
 def generate(backend_class, inputs, outputs, options, parsing_method, post_process=None, merged=False):
     astreg, astguide, errors, warnings = parsing_method(*inputs)
+    # Swapping the strings on the parsed English, before any backend runs, is
+    # what lets every target -- html, pdf, json, markdown -- come out in the
+    # catalog's language from the one English source.
+    if getattr(options, 'po', None):
+        catalog = Catalog.load(options.po)
+        for ast in (astreg, astguide):
+            if ast:
+                translate_document(ast, catalog)
     if len(errors) + len(warnings) == 0:
         print(("Compiled document, generating " +
                backend_class.name + "..."))
@@ -300,12 +311,17 @@ def run():
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
     action_group.add_argument('--target', help='Select target output kind',
-                              choices=['latex', 'pdf', 'html', 'check', 'json'])
+                              choices=['latex', 'pdf', 'html', 'check', 'json',
+                                       'pot', 'markdown'])
     action_group.add_argument('--diff', help='Diff against the specified file')
     action_group.add_argument('-v', '--version', action='version',
                               version=__version__)
     argparser.add_argument('-m', '--merged',
                            help='Merge the Regulations and Guidelines into a single document', action='store_true')
+    argparser.add_argument('--po',
+                           help='Translation catalog to build the output from. '
+                                'Applies to every --target; without it the '
+                                'input is built as is')
     build_common_option(argparser)
 
     options = argparser.parse_args()
@@ -313,6 +329,13 @@ def run():
     if not options.diff and not options.target:
         print("Nothing to do, exiting...")
         sys.exit(0)
+
+    # The catalog is applied on the way to a backend, which check and --diff do
+    # not use. Saying so beats accepting the flag and ignoring it.
+    if options.po and (options.diff or options.target in ("check", "pot")):
+        print("Error: --po does not apply to --diff or --target=%s."
+              % (options.target or "check"))
+        sys.exit(1)
 
     input_regulations, input_guidelines = files_from_dir(options.input)
 
@@ -346,6 +369,24 @@ def run():
         errors, warnings = generate(WCADocumentJSON,
                                     (input_regulations, input_guidelines),
                                     ["wca-regulations.json"],
+                                    options, parse_regulations_guidelines, merged=options.merged)
+    elif options.target == "pot":
+        check_output(options.output)
+        errors, warnings = generate(WCADocumentPot,
+                                    (input_regulations, input_guidelines),
+                                    ["wca-regulations.pot"],
+                                    options, parse_regulations_guidelines, merged=options.merged)
+    elif options.target == "markdown":
+        check_output(options.output)
+        # Only name the files that actually have content behind them: writing
+        # an empty wca-guidelines.md would leave a document the compiler
+        # refuses to parse on the next run.
+        output_files = [REGULATIONS_FILENAME]
+        if input_guidelines and not options.merged:
+            output_files.append(GUIDELINES_FILENAME)
+        errors, warnings = generate(WCADocumentMarkdown,
+                                    (input_regulations, input_guidelines),
+                                    output_files,
                                     options, parse_regulations_guidelines, merged=options.merged)
     elif options.target == "check" or options.diff:
         print("Checking input file(s)...")
