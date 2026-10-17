@@ -180,6 +180,12 @@
     "regulations": "Regulamin",
     "guidelines": "Wytyczne",
     "pdf": "wca-regulamin"
+ },
+  "uzbek": {
+    "name": "Uzbek",
+    "native": "O'zbekcha",
+    "regulations": "Qoidalari",
+    "pdf": "wca-qoidalari"
   }
 }
 
