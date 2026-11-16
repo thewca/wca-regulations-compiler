@@ -5,7 +5,22 @@ This is a tool to check, build, compare WCA Regulations and Guidelines and its t
 
 ## Install from PyPI
 
-Just run `pip install wrc`.
+Install globally:
+
+```shell
+pip install wrc
+
+# Run from the Python binary path:
+wrc
+wrc-states
+```
+
+If you use [`uv`](https://docs.astral.sh/uv/guides/tools/), you can also directly run the commands without installing:
+
+```shell
+uvx wrc
+uvx --from wrc wrc-states
+```
 
 ## External dependencies
 
