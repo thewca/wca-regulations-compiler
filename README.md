@@ -52,7 +52,5 @@ echo "from wrc.wrc import states; states()" | uv run -- - ./test/samples/states/
 
 (section for maintainers in PyPi)
 
-- Bump the version number in `wrc/version.py` and in `pyproject-toml`
-- (optional, depends on your environment) `pip install --upgrade build`
-- `python -m build`
-- `twine upload dist/*`
+- Bump the version number in `pyproject-toml`
+- `make publish`

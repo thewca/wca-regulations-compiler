@@ -11,4 +11,6 @@ jobs:
       - uses: astral-sh/setup-uv@v10.3.3
       - run: make lint
       - run: make test
+      - run: make build
+      - run: make check-package
 

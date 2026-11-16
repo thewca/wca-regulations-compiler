@@ -1,13 +1,17 @@
 .PHONY: check
-check: lint test
+check: lint test build check-package
+
+.PHONY: build
+build:
+	uv run pyproject-build
 
 .PHONY: test
 test: test-regulations test-states
 
 .PHONY: test-regulations
 test-regulations:
-	uv run wrc --target html -- ./test/samples/plus_n/wca-regulations.md
-	uv run wrc --target html -- ./test/samples/multiplus/wca-regulations.md
+	uv run -- wrc --target html -- ./test/samples/plus_n/wca-regulations.md
+	uv run -- wrc --target html -- ./test/samples/multiplus/wca-regulations.md
 	uv run -- ./test/mixed_guidelines.py
 
 .PHONY: test-states
@@ -33,3 +37,11 @@ clean:
 .PHONY: reset
 reset: clean
 	rm -rf ./.ruff-cahe/ ./.venv/
+
+.PHONY: check-package
+check-package: build
+	uv run twine check dist/*
+
+.PHONY: publish
+publish: build check-package
+	uv run -- twine upload dist/*
