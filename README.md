@@ -33,18 +33,20 @@ For CJK translations you also need to install some packages providing CJK fonts.
 
 Here are some sample invocations:
 
-- To check the Regulations and Guidelines:
-`wrc path/to/wca-regulations --target=check`
-- To build the html to the `build` directory:
-`wrc path/to/wca-regulations --target=html --output=build`
-- To merge the Regulations and Guidelines into a single document (works with html, pdf and json targets):
-`wrc path/to/wca-regulations --target=html --output=build --merged`
-- When building translation it's necessary to provide the language (to choose the appropriate font/pdf names):
-`wrc path/to/wca-regulations-translations/french --language=french --target=pdf --output=build`
-- Check that a translation matches exactly the original rules:
-`wrc path/to/wca-regulations-translations/french --diff=path/to/wca-regulations`
+```shell
+# To check the Regulations and Guidelines:
+wrc path/to/wca-regulations --target=check
+# To build the html to the `build` directory:
+wrc path/to/wca-regulations --target=html --output=build
+# To merge the Regulations and Guidelines into a single document (works with html, pdf and json targets):
+wrc path/to/wca-regulations --target=html --output=build --merged
+# When building translation it's necessary to provide the language (to choose the appropriate font/pdf names):
+wrc path/to/wca-regulations-translations/french --language=french --target=pdf --output=build
+# Check that a translation matches exactly the original rules:
+wrc path/to/wca-regulations-translations/french --diff=path/to/wca-regulations
+```
 
-You can also take a look at the travis [script](https://github.com/thewca/wca-regulations-translations/blob/master/travis.sh) used in the translations repository.
+You can also take a look at the [workflow used in the translations repository](https://github.com/thewca/wca-regulations-translations/blob/892f85771a2e7bbcab08e0486e7a7892d1f93ece/.github/workflows/deploy-to-s3.yml#L59-L61).
 
 
 ## Running from the sources
