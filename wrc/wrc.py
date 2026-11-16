@@ -246,9 +246,12 @@ def files_from_dir(file_or_directory):
 
 
 def check_output(directory):
-    if not os.path.isdir(directory):
-        print("Error: output is not a directory.")
-        sys.exit(1)
+    if os.path.exists(directory):
+        if not os.path.isdir(directory):
+            print("Error: output exists and is not a directory.")
+            sys.exit(1)
+    else:
+        os.makedirs(directory, exist_ok=True)
 
 
 def languages(display=True):

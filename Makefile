@@ -21,3 +21,15 @@ lint:
 .PHONY: format
 format:
 	uv run ruff check
+
+.PHONY: setup
+setup:
+	uv sync
+
+.PHONY: clean
+clean:
+	rm -rf ./build/ ./dist/
+
+.PHONY: reset
+reset: clean
+	rm -rf ./.ruff-cahe/ ./.venv/

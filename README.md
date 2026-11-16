@@ -36,13 +36,13 @@ You can also take a look at the travis [script](https://github.com/thewca/wca-re
 
 The easiest way to develop locally is to use [`uv`](https://docs.astral.sh/uv/guides/tools/)
 
-Run the compiler:
+Run the compiler (outputs into `./build/` by default):
 
 ```shell
 uv run wrc --target html -- ./test/samples/plus_n/wca-regulations.md
 ```
 
-Process a states file:
+Process a states file (outputs into `./build/` by default):
 
 ```shell
 echo "from wrc.wrc import states; states()" | uv run -- - ./test/samples/states/wca-states.md --target=json
