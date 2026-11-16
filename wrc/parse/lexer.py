@@ -2,6 +2,7 @@
 WCALexer : tokenize a string using lex.
 '''
 import re
+
 import ply.lex as lex
 from unidecode import unidecode
 
@@ -22,12 +23,16 @@ class WCALexer(object):
         'TEXT',
         'PARBREAK',
         'REGULATION',
-        'GUIDELINE',
+        'GUIDELINE_PLUS_N',
+        'GUIDELINE_LEGACY_MULTIPLUS',
         'STATE',
         )
 
 
     t_ignore = '\t'
+
+    # This is a crude way to match documents with mixed Guideline numbering (which should not be valid).
+    seen_guideline = None
 
     def t_TITLE(self, token):
         r'\#\s+<wca-title>(?P<title>.+)\n'
@@ -105,7 +110,8 @@ class WCALexer(object):
         token.lexer.lineno += 1
         return token
 
-    def t_GUIDELINE(self, token):
+    # `+n` format (e.g. 11e+6)
+    def t_GUIDELINE_PLUS_N(self, token):
         r'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+[+]\d+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?[^ ])\n'
         indents = token.lexer.lexmatch.group("indents")
         indents = len(indents)//4 if indents else 0
@@ -114,7 +120,33 @@ class WCALexer(object):
         label = token.lexer.lexmatch.group("label")
         token.value = (indents, reg, text, label)
         token.lexer.lineno += 1
-        return token
+
+        if self.seen_guideline == "multiplus":
+            print("Saw a +n format guideline after a multiplus guideline at line %s in text '%s'" % (token.lexer.lineno + 1, token.value[:-1]))
+            token.lexer.lexerror = True
+            token.lexer.skip(1)
+        else:
+            self.seen_guideline = "plus_n"
+            return token
+
+    # Legacy "multiplus" format (e.g. 11e++++++)
+    def t_GUIDELINE_LEGACY_MULTIPLUS(self, token):
+        r'(?P<indents>\s{4,})*-\s(?P<reg>[a-zA-Z0-9]+[+]+)\)\s\[(?P<label>.+?)\]\s*(?P<text>.+?[^ ])\n'
+        indents = token.lexer.lexmatch.group("indents")
+        indents = len(indents)//4 if indents else 0
+        reg = token.lexer.lexmatch.group("reg")
+        text = token.lexer.lexmatch.group("text")
+        label = token.lexer.lexmatch.group("label")
+        token.value = (indents, reg, text, label)
+        token.lexer.lineno += 1
+
+        if self.seen_guideline == "plus_n":
+            print("Saw a multiplus format guideline after a +n guideline at line %s in text '%s'" % (token.lexer.lineno + 1, token.value[:-1]))
+            token.lexer.lexerror = True
+            token.lexer.skip(1)
+        else:
+            self.seen_guideline = "multiplus"
+            return token
 
     def t_STATE(self, token):
         r'-\s\((?P<state>[A-Z]{2}):(?P<continent>[_A-Za-z ]+)(:(?P<friendly_id>[A-Za-z_]+))?\)\s(?P<name>[A-Z].+?[^ ])\n'

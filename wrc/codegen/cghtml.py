@@ -1,7 +1,8 @@
 ''' Backend for HTML. '''
 import re
-from wrc.sema.ast import Ruleset, Rule, LabelDecl
+
 from wrc.codegen.cg import CGDocument
+from wrc.sema.ast import LabelDecl, Rule, Ruleset
 
 REPO_REG = "https://github.com/thewca/wca-regulations"
 REPO_TRANS = "https://github.com/thewca/wca-regulations-translations"
@@ -116,7 +117,10 @@ class WCADocumentHtml(CGDocument):
                          '</h2></div></div>\n')
         self.label = ('<li><span class="{name} label label-default">{name}</span> '
                       '{text}</li>\n')
-        self.guideline = ('<li id="{i}"><span id="{j}"><a href="#{i}">{i}</a>) '
+        self.multiplus_guideline = ('<li id="{id}"><a href="#{id}">{id}</a>) '
+                          '<span class="{label} label {linked}">'
+                          '<a {attr}>{label}</a></span> {text}</span></li>\n')
+        self.plus_n_guideline = ('<li id="{id}"><span id="{legacy_multiplus_id}"><a href="#{id}">{id}</a>) '
                           '<span class="{label} label {linked}">'
                           '<a {attr}>{label}</a></span> {text}</span></li>\n')
         self.regulation = '<li id="{i}"><a href="#{i}">{i}</a>) {text}'
@@ -216,15 +220,21 @@ class WCADocumentHtml(CGDocument):
         anchor_attr = 'id="#%s"' % guide.number
         attr = link_attr if linked else anchor_attr
 
-        number_legacy_match = re.match(r'([a-zA-Z0-9]+)[+](\d+)', guide.number)
-        number_legacy = number_legacy_match.group(1) + "+" * int(number_legacy_match.group(2))
-
-        self.codegen += self.guideline.format(i=guide.number,
-                                              j=number_legacy,
-                                              text=self.md2html(guide.text),
-                                              label=guide.labelname,
-                                              linked=label_class,
-                                              attr=attr)
+        plus_n_match = re.match(r'([a-zA-Z0-9]+)[+](\d+)', guide.number)
+        if (plus_n_match):
+            number_legacy = plus_n_match.group(1) + "+" * int(plus_n_match.group(2))
+            self.codegen += self.plus_n_guideline.format(id=guide.number,
+                                                legacy_multiplus_id=number_legacy,
+                                                text=self.md2html(guide.text),
+                                                label=guide.labelname,
+                                                linked=label_class,
+                                                attr=attr)
+        else:
+            self.codegen += self.multiplus_guideline.format(id=guide.number,
+                                                text=self.md2html(guide.text),
+                                                label=guide.labelname,
+                                                linked=label_class,
+                                                attr=attr)
         return super(WCADocumentHtml, self).visitGuideline(guide)
 
     def emit(self, ast_reg, ast_guide):

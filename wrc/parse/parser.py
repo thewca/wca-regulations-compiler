@@ -197,7 +197,8 @@ class WCAParser(object):
         self._act_on_list(rules)
 
     def p_rule(self, rule):
-        '''rule : GUIDELINE
+        '''rule : GUIDELINE_PLUS_N
+                | GUIDELINE_LEGACY_MULTIPLUS
                 | REGULATION'''
         # This is a regulation
         indentsize = rule[1][0]
