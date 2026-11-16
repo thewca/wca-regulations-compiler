@@ -5,6 +5,7 @@ import sys
 import urllib.error
 import urllib.request
 from importlib.resources import as_file, files
+from pathlib import Path
 from subprocess import CalledProcessError, check_call
 
 from .codegen.cghtml import WCADocumentHtml
@@ -84,14 +85,16 @@ def output(result_tuple, outputs, output_dir):
     output_filename = None
     for content, filename in zip(result_tuple, outputs):
         mode = "w"
-        if output_filename == output_dir + "/" + filename:
+        if output_filename == Path(output_dir).joinpath(filename):
             mode = "a"
         else:
-            output_filename = output_dir + "/" + filename
-        output_filename_str: str = output_filename  # type: ignore (false positive)
-        with open(output_filename_str, mode + "+", encoding="utf-8") as output_file:
+            output_filename = Path(output_dir).joinpath(filename)
+        output_filename_not_none: Path = output_filename  # type: ignore (false positive)
+        with open(
+            output_filename_not_none, mode + "+", encoding="utf-8"
+        ) as output_file:
             output_file.write(content)
-            print("Successfully written the content to " + output_filename_str)
+            print(f"Successfully written the content to {output_filename_not_none}")
 
 
 def generate(
