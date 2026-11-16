@@ -34,9 +34,19 @@ You can also take a look at the travis [script](https://github.com/thewca/wca-re
 
 ## Running from the sources
 
-The compiler is built on top of python lex/yacc implementation `ply`, so you probably need to run `pip install ply` to install it.
-When this is done, you can use `python -m wrc.wrc` from the repository's root instead of `wrc`.
-If you want to use `wrc-states` from the source, an easy way to do this is to run `python -c "from wrc.wrc import states; states()"`
+The easiest way to develop locally is to use [`uv`](https://docs.astral.sh/uv/guides/tools/)
+
+Run the compiler:
+
+```shell
+uv run wrc --target html -- ./test/samples/plus_n/wca-regulations.md
+```
+
+Process a states file:
+
+```shell
+echo "from wrc.wrc import states; states()" | uv run -- - ./test/samples/states/wca-states.md --target=json
+```
 
 ## Deploying to PyPi
 
