@@ -6,7 +6,7 @@ build:
 	uv run pyproject-build
 
 .PHONY: test
-test: test-regulations test-states
+test: test-regulations test-states test-languages
 
 .PHONY: test-regulations
 test-regulations:
@@ -17,6 +17,10 @@ test-regulations:
 .PHONY: test-states
 test-states:
 	uv run -- wrc-states ./test/samples/states/wca-states.md --target=json
+
+.PHONY: test-languages
+test-languages:
+	uv run -- wrc-languages
 
 .PHONY: lint
 lint:
