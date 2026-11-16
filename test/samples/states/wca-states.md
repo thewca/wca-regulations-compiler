@@ -1,10 +1,8 @@
 # <wca-title>WCA List of Recognized Regions
 <wca-states>
-<version>Version: January 1, 2024
+<version>Version: November 15, 2026
 
-
-The WCA recognizes a total of 199 regions:
-
+This sample data consists of 3 regions:
 
 ## <states-list>
 
