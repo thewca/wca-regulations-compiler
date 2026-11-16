@@ -1,37 +1,44 @@
 from functools import total_ordering
 
-class WCADocument(object):
+
+class WCADocument:
     def __init__(self, title, version, text, sections):
         self.title = title
         self.sections = sections
         self.text = text
         self.version = version
 
+
 class WCARegulations(WCADocument):
     def __init__(self, title, version, text, sections):
-        super(WCARegulations, self).__init__(title, version, text, sections)
+        super().__init__(title, version, text, sections)
+
 
 class WCAGuidelines(WCADocument):
     def __init__(self, title, version, text, sections):
-        super(WCAGuidelines, self).__init__(title, version, text, sections)
+        super().__init__(title, version, text, sections)
+
 
 class WCAStates(WCADocument):
     def __init__(self, title, version, text, sections):
-        super(WCAStates, self).__init__(title, version, text, sections)
+        super().__init__(title, version, text, sections)
 
-class Section(object):
+
+class Section:
     def __init__(self, title, intro, content):
         self.title = title
         self.intro = intro
         self.content = content
 
+
 class StatesList(Section):
     def __init__(self, title, content):
-        super(StatesList, self).__init__(title, '', content)
+        super().__init__(title, "", content)
+
 
 class Article(Section):
     def __init__(self, title, intro, content, number, newtag, oldtag, name, sep):
-        super(Article, self).__init__(title, intro, content)
+        super().__init__(title, intro, content)
         self.number = number
         self.name = name
         self.newtag = newtag
@@ -47,15 +54,17 @@ class Article(Section):
 
 class TableOfContent(Section):
     def __init__(self, title, intro, content):
-        super(TableOfContent, self).__init__(title, intro, content)
+        super().__init__(title, intro, content)
         self.articles = []
 
     def set_articles(self, articles):
         self.articles = articles
 
+
 class Subsection(Section):
     def __init__(self, title, intro, content):
-        super(Subsection, self).__init__(title, intro, content)
+        super().__init__(title, intro, content)
+
 
 def split_rule_number(number):
     retval = []
@@ -71,8 +80,9 @@ def split_rule_number(number):
             retval.append(0)
     return retval
 
+
 @total_ordering
-class Rule(object):
+class Rule:
     def __init__(self, number, text, parent):
         self.number = number
         self.list_number = split_rule_number(self.number)
@@ -96,20 +106,23 @@ class Rule(object):
     def __hash__(self):
         return hash(self.number)
 
+
 class Regulation(Rule):
     def __init__(self, number, text, parent):
-        super(Regulation, self).__init__(number, text, parent)
+        super().__init__(number, text, parent)
+
 
 class Guideline(Rule):
     def __init__(self, number, text, labelname, parent):
-        super(Guideline, self).__init__(number, text, parent)
+        super().__init__(number, text, parent)
         self.labelname = labelname
 
     @property
     def regname(self):
-        return self.number.replace('+', '')
+        return self.number.replace("+", "")
 
-class State(object):
+
+class State:
     def __init__(self, state_id, continent_id, name, friendly_id, info):
         self.state_id = state_id
         self.continent_id = continent_id
@@ -117,7 +130,8 @@ class State(object):
         self.friendly_id = friendly_id
         self.info = info
 
-class LabelDecl(object):
+
+class LabelDecl:
     def __init__(self, name, text):
         self.name = name
         self.text = text
@@ -134,15 +148,16 @@ class LabelDecl(object):
         return hash(self.name)
 
 
-class ASTVisitor(object):
-    '''
+class ASTVisitor:
+    """
     Basic ASTVisitor. Should never be instanciated, please use
     RegulationsASTVisitor or GuidelinesASTVisitor below as base class.
-    '''
+    """
+
     def __init__(self):
         self.rootnode_type = None
 
-    def visit(self, o):
+    def visit(self, o) -> bool:
         if self.rootnode_type is None:
             self.rootnode_type = o.__class__
         name = "visit" + o.__class__.__name__
@@ -150,7 +165,7 @@ class ASTVisitor(object):
         if method is None or not callable(method):
             print("Unable to visit " + o.__class__.__name__)
             return False
-        return method(o)
+        return bool(method(o))
 
     def visitlist(self, o):
         retval = [self.visit(i) for i in o]
@@ -159,7 +174,7 @@ class ASTVisitor(object):
     def visitstr(self, s):
         return True
 
-    def visitLabelDecl(self, label):
+    def visitLabelDecl(self, decl):
         return True
 
     def visitSection(self, section):
@@ -171,7 +186,7 @@ class ASTVisitor(object):
     def visitSubsection(self, subsection):
         return self.visit(subsection.intro) and self.visit(subsection.content)
 
-    def visitTableOfContent(self, toc):
+    def visitTableOfContent(self, toc) -> bool:
         return True
 
     def visitArticle(self, article):
@@ -181,8 +196,8 @@ class ASTVisitor(object):
         retval = self.visit(document.sections)
         return retval and self.end_of_document(document)
 
-    def visitWCAGuidelines(self, regs):
-        return self.visitWCADocument(regs)
+    def visitWCAGuidelines(self, guides):
+        return self.visitWCADocument(guides)
 
     def visitWCARegulations(self, regs):
         return self.visitWCADocument(regs)
@@ -196,8 +211,8 @@ class ASTVisitor(object):
     def visitRule(self, rule):
         return True
 
-    def visitGuideline(self, reg):
-        return self.visitRule(reg) and self.visit(reg.children)
+    def visitGuideline(self, guide):
+        return self.visitRule(guide) and self.visit(guide.children)
 
     def visitRegulation(self, reg):
         return self.visitRule(reg) and self.visit(reg.children)
@@ -205,10 +220,11 @@ class ASTVisitor(object):
     def end_of_document(self, document):
         return True
 
+
 # FIXME not even sure this utility belongs here
 class Ruleset(ASTVisitor):
     def __init__(self):
-        super(Ruleset, self).__init__()
+        super().__init__()
         self.ruleset = set()
 
     def visitRule(self, rule):
@@ -221,4 +237,3 @@ class Ruleset(ASTVisitor):
             return self.ruleset
         else:
             return None
-
