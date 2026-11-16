@@ -45,7 +45,7 @@ uv run wrc --target html -- ./test/samples/plus_n/wca-regulations.md
 Process a states file (outputs into `./build/` by default):
 
 ```shell
-echo "from wrc.wrc import states; states()" | uv run -- - ./test/samples/states/wca-states.md --target=json
+uv run -- wrc-states ./test/samples/states/wca-states.md --target=json
 ```
 
 ## Deploying to PyPi

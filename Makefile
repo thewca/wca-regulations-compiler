@@ -16,7 +16,7 @@ test-regulations:
 
 .PHONY: test-states
 test-states:
-	echo "from wrc.wrc import states; states()" | uv run -- - ./test/samples/states/wca-states.md --target=json
+	uv run -- wrc-states ./test/samples/states/wca-states.md --target=json
 
 .PHONY: lint
 lint:
