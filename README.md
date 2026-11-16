@@ -3,7 +3,7 @@
 
 This is a tool to check, build, compare WCA Regulations and Guidelines and its translations.
 
-## Install from PyPi
+## Install from PyPI
 
 Just run `pip install wrc`.
 
@@ -48,9 +48,9 @@ Process a states file (outputs into `./build/` by default):
 uv run -- wrc-states ./test/samples/states/wca-states.md --target=json
 ```
 
-## Deploying to PyPi
+## Deploying to PyPI
 
-(section for maintainers in PyPi)
+(section for maintainers in PyPI)
 
 - Bump the version number in `pyproject-toml`
 - `make publish`
