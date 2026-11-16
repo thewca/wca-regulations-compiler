@@ -1,17 +1,18 @@
-import urllib.request
-import urllib.error
 import argparse
 import json
-import sys
 import os
-from subprocess import check_call, CalledProcessError
-from importlib.resources import files, as_file
-from .parse.parser import WCAParser
-from .sema.ast import WCARegulations, WCAGuidelines, WCAStates, Ruleset
+import sys
+import urllib.error
+import urllib.request
+from importlib.resources import as_file, files
+from subprocess import CalledProcessError, check_call
+
 from .codegen.cghtml import WCADocumentHtml
 from .codegen.cghtmltopdf import WCADocumentHtmlToPdf
 from .codegen.cgjson import WCADocumentJSON
 from .codegen.merger import merge_ast
+from .parse.parser import WCAParser
+from .sema.ast import Ruleset, WCAGuidelines, WCARegulations, WCAStates
 from .version import __version__
 
 REGULATIONS_FILENAME = "wca-regulations.md"
@@ -27,7 +28,7 @@ def parse_states(states):
     errors = []
     warnings = []
     if states:
-        with open(states, encoding='utf-8') as states_file:
+        with open(states, encoding="utf-8") as states_file:
             states_as_str = states_file.read()
     parser = WCAParser()
     if states_as_str:
@@ -53,7 +54,9 @@ def parse_regulations_guidelines(reg, guide):
         errors.extend(errors_reg)
         warnings.extend(warnings_reg)
     if guide_as_str:
-        astguide, errors_guide, warnings_guide = parser.parse(guide_as_str, WCAGuidelines)
+        astguide, errors_guide, warnings_guide = parser.parse(
+            guide_as_str, WCAGuidelines
+        )
         errors.extend(errors_guide)
         warnings.extend(warnings_guide)
     return (astreg, astguide, errors, warnings)
@@ -65,14 +68,14 @@ def get_file_as_str(file) -> str:
     * Add EOL to EOF if missing.
     :return: file as string.
     """
-    with open(file, encoding='utf-8') as md_file:
+    with open(file, encoding="utf-8") as md_file:
         file_as_str = md_file.read()
     # FIXME: do we want to just remove tabs from regs?
     file_as_str = file_as_str.replace("\t", "    ")
 
     # Add EOL to EOF if missing.
-    if file_as_str[-1] != '\n':
-        file_as_str += '\n'
+    if file_as_str[-1] != "\n":
+        file_as_str += "\n"
 
     return file_as_str
 
@@ -80,31 +83,44 @@ def get_file_as_str(file) -> str:
 def output(result_tuple, outputs, output_dir):
     output_filename = None
     for content, filename in zip(result_tuple, outputs):
-        mode = 'w'
+        mode = "w"
         if output_filename == output_dir + "/" + filename:
-            mode = 'a'
+            mode = "a"
         else:
             output_filename = output_dir + "/" + filename
-        with open(output_filename, mode + '+', encoding='utf-8') as output_file:
+        output_filename_str: str = output_filename  # type: ignore (false positive)
+        with open(output_filename_str, mode + "+", encoding="utf-8") as output_file:
             output_file.write(content)
-            print("Successfully written the content to " + output_filename)
+            print("Successfully written the content to " + output_filename_str)
 
 
-def generate(backend_class, inputs, outputs, options, parsing_method, post_process=None, merged=False):
+def generate(
+    backend_class,
+    inputs,
+    outputs,
+    options,
+    parsing_method,
+    post_process=None,
+    merged=False,
+):
     astreg, astguide, errors, warnings = parsing_method(*inputs)
     if len(errors) + len(warnings) == 0:
-        print(("Compiled document, generating " +
-               backend_class.name + "..."))
+        print("Compiled document, generating " + backend_class.name + "...")
         languages_options = languages(False)[options.language]
         if merged:
             languages_options["pdf"] += ".merged"
         if backend_class is WCADocumentHtml:
             # Other subclasses of CGDocument do not have a "merged" constructor parameter.
-            cg_instance = backend_class(options.git_hash, options.language,
-                                        languages_options["pdf"], merged=merged)
+            cg_instance = backend_class(
+                options.git_hash,
+                options.language,
+                languages_options["pdf"],
+                merged=merged,
+            )
         else:
-            cg_instance = backend_class(options.git_hash, options.language,
-                                        languages_options["pdf"])
+            cg_instance = backend_class(
+                options.git_hash, options.language, languages_options["pdf"]
+            )
         if merged:
             # Merge both ASTs and do not visit astguide.
             astreg = merge_ast(astreg, astguide, languages_options)
@@ -129,25 +145,28 @@ def html_to_pdf(tmp_filenames, output_directory, lang_options):
     header_resource = files("wrc").joinpath("data/header.html")
     footer_resource = files("wrc").joinpath("data/footer.html")
 
-    with as_file(header_resource) as header_file, as_file(footer_resource) as footer_file:
+    with (
+        as_file(header_resource) as header_file,
+        as_file(footer_resource) as footer_file,
+    ):
         wkthml_cmd.extend(["--header-html", str(header_file)])
         wkthml_cmd.extend(["--footer-html", str(footer_file)])
     wkthml_cmd.extend(["--header-spacing", "8"])
     wkthml_cmd.extend(["--footer-spacing", "8"])
     wkthml_cmd.extend(["--enable-local-file-access"])
     wkthml_cmd.append(input_html)
-    wkthml_cmd.append(output_directory + "/" + lang_options['pdf'] + '.pdf')
+    wkthml_cmd.append(output_directory + "/" + lang_options["pdf"] + ".pdf")
     try:
         check_call(wkthml_cmd)
         print("Successfully generated pdf file!")
-        print("Cleaning temporary file (%s)..." % input_html)
+        print(f"Cleaning temporary file ({input_html})...")
         os.remove(input_html)
     except CalledProcessError as err:
         print("Error while generating pdf:")
         print(err)
         sys.exit(1)
     except OSError as err:
-        print("Error when running command \"" + " ".join(wkthml_cmd) + "\"")
+        print('Error when running command "' + " ".join(wkthml_cmd) + '"')
         print(err)
         sys.exit(1)
 
@@ -156,14 +175,20 @@ def output_diff(submitted, reference):
     rules_visitor = Ruleset()
     set_submitted = rules_visitor.get(submitted)
     set_reference = rules_visitor.get(reference)
+    assert set_submitted is not None
+    assert set_reference is not None
     unexpected = set_submitted - set_reference
     missing = set_reference - set_submitted
     if len(unexpected) > 0:
-        print(("/!\\ These numbers are in the translation file, "
-               "but not in the reference one: {%s}" % ', '.join(sorted(unexpected))))
+        print(
+            "/!\\ These numbers are in the translation file, "
+            "but not in the reference one: {{{}}}".format(", ".join(sorted(unexpected)))
+        )
     if len(missing) > 0:
-        print(("/!\\ These numbers are in the reference file, "
-               "but not in the translation one: {%s}" % ', '.join(sorted(missing))))
+        print(
+            "/!\\ These numbers are in the reference file, "
+            "but not in the translation one: {{{}}}".format(", ".join(sorted(missing)))
+        )
     return len(unexpected) + len(missing)
 
 
@@ -198,10 +223,11 @@ def files_from_dir(file_or_directory):
     if os.path.isdir(file_or_directory):
         regulations = file_or_directory + "/" + REGULATIONS_FILENAME
         guidelines = file_or_directory + "/" + GUIDELINES_FILENAME
-        if (not os.path.isfile(regulations) or
-                not os.path.isfile(guidelines)):
-            print(("Error: the directory '%s' must contain both the Regulations "
-                   "and Guidelines files." % file_or_directory))
+        if not os.path.isfile(regulations) or not os.path.isfile(guidelines):
+            print(
+                f"Error: the directory '{file_or_directory}' must contain both the Regulations "
+                "and Guidelines files."
+            )
             sys.exit(1)
     elif os.path.isfile(file_or_directory):
         if file_or_directory.endswith(REGULATIONS_FILENAME):
@@ -209,7 +235,9 @@ def files_from_dir(file_or_directory):
         elif file_or_directory.endswith(GUIDELINES_FILENAME):
             guidelines = file_or_directory
         else:
-            print("Error: couldn't detect if the input file are Regulations or Guidelines.")
+            print(
+                "Error: couldn't detect if the input file are Regulations or Guidelines."
+            )
             sys.exit(1)
     else:
         print(f"Warning: {file_or_directory} is not a file or a directory. Ignoring.")
@@ -226,35 +254,53 @@ def check_output(directory):
 def languages(display=True):
     # First try to fetch the languages.json file from the compiler's repository.
     try:
-        with urllib.request.urlopen(LANGUAGES_JSON_URL, timeout=URLLIB_REQUEST_TIMEOUT) as req:
+        with urllib.request.urlopen(
+            LANGUAGES_JSON_URL, timeout=URLLIB_REQUEST_TIMEOUT
+        ) as req:
             languages_json_str = req.read().decode(req.headers.get_content_charset())
     except (urllib.error.HTTPError, urllib.error.URLError) as e:
-        print(f"Warning: could not fetch the latest languages.json file, a fallback will be used. Reason: {e.reason}")
+        print(
+            f"Warning: could not fetch the latest languages.json file, a fallback will be used. Reason: {e.reason}"
+        )
 
         # Get information about languages from the config file (tex encoding, pdf filename, etc)
-        languages_json_str = files(__package__).joinpath("data/languages.json").read_text(encoding="utf-8")
+        languages_json_str = (
+            files(__package__)
+            .joinpath("data/languages.json")
+            .read_text(encoding="utf-8")
+        )
 
     languages_info = json.loads(languages_json_str)
 
     if display:
-        print(" ".join([key for key in list(languages_info.keys()) if key != "english"]))
+        print(
+            " ".join([key for key in list(languages_info.keys()) if key != "english"])
+        )
         sys.exit(0)
 
     return languages_info
 
 
 def check_states_file(file_or_directory):
-    if not os.path.isfile(file_or_directory) or not file_or_directory.endswith(STATES_FILENAME):
+    if not os.path.isfile(file_or_directory) or not file_or_directory.endswith(
+        STATES_FILENAME
+    ):
         print("Error: input file is not as expected..")
         sys.exit(1)
 
 
 def build_common_option(argparser):
-    argparser.add_argument('-o', '--output', default='build/', help='Output directory')
-    argparser.add_argument('input', help='Input file or directory')
-    argparser.add_argument('-g', '--git-hash', default='unknown',
-                           help='Git hash corresponding to the files')
-    argparser.add_argument('-l', '--language', default='english', help='Language of the file')
+    argparser.add_argument("-o", "--output", default="build/", help="Output directory")
+    argparser.add_argument("input", help="Input file or directory")
+    argparser.add_argument(
+        "-g",
+        "--git-hash",
+        default="unknown",
+        help="Git hash corresponding to the files",
+    )
+    argparser.add_argument(
+        "-l", "--language", default="english", help="Language of the file"
+    )
 
 
 def handle_errors_and_warnings(errors, warnings):
@@ -271,22 +317,21 @@ def handle_errors_and_warnings(errors, warnings):
 def states():
     argparser = argparse.ArgumentParser()
     build_common_option(argparser)
-    argparser.add_argument('--target', help='Select target output kind',
-                           choices=['check', 'json'])
+    argparser.add_argument(
+        "--target", help="Select target output kind", choices=["check", "json"]
+    )
     options = argparser.parse_args()
 
     check_states_file(options.input)
 
     if options.target == "json":
         check_output(options.output)
-        errors, warnings = generate(WCADocumentJSON,
-                                    [options.input],
-                                    ["states.json"],
-                                    options,
-                                    parse_states)
+        errors, warnings = generate(
+            WCADocumentJSON, [options.input], ["states.json"], options, parse_states
+        )
     elif options.target == "check":
         print("Checking input file(s)...")
-        astreg, astguide, errors, warnings = parse_states(options.input)
+        _astreg, _astguide, errors, warnings = parse_states(options.input)
         if len(errors) + len(warnings) == 0:
             print("All checks passed!")
     else:
@@ -299,13 +344,19 @@ def states():
 def run():
     argparser = argparse.ArgumentParser()
     action_group = argparser.add_mutually_exclusive_group()
-    action_group.add_argument('--target', help='Select target output kind',
-                              choices=['latex', 'pdf', 'html', 'check', 'json'])
-    action_group.add_argument('--diff', help='Diff against the specified file')
-    action_group.add_argument('-v', '--version', action='version',
-                              version=__version__)
-    argparser.add_argument('-m', '--merged',
-                           help='Merge the Regulations and Guidelines into a single document', action='store_true')
+    action_group.add_argument(
+        "--target",
+        help="Select target output kind",
+        choices=["latex", "pdf", "html", "check", "json"],
+    )
+    action_group.add_argument("--diff", help="Diff against the specified file")
+    action_group.add_argument("-v", "--version", action="version", version=__version__)
+    argparser.add_argument(
+        "-m",
+        "--merged",
+        help="Merge the Regulations and Guidelines into a single document",
+        action="store_true",
+    )
     build_common_option(argparser)
 
     options = argparser.parse_args()
@@ -325,32 +376,46 @@ def run():
             output_files = ["full.html.erb"]
         else:
             output_files = ["index.html.erb", "guidelines.html.erb"]
-        errors, warnings = generate(WCADocumentHtml,
-                                    (input_regulations, input_guidelines),
-                                    output_files,
-                                    options, parse_regulations_guidelines, merged=options.merged)
+        errors, warnings = generate(
+            WCADocumentHtml,
+            (input_regulations, input_guidelines),
+            output_files,
+            options,
+            parse_regulations_guidelines,
+            merged=options.merged,
+        )
     elif options.target == "pdf":
         check_output(options.output)
         if not input_regulations:
-            print("Error: At least the Regulations are needed "
-                  "to generate the pdf file.")
+            print(
+                "Error: At least the Regulations are needed to generate the pdf file."
+            )
             sys.exit(1)
-        errors, warnings = generate(WCADocumentHtmlToPdf,
-                                    (input_regulations, input_guidelines),
-                                    ["regulations_tmp.html", "regulations_tmp.html"],
-                                    options, parse_regulations_guidelines,
-                                    html_to_pdf, merged=options.merged)
+        errors, warnings = generate(
+            WCADocumentHtmlToPdf,
+            (input_regulations, input_guidelines),
+            ["regulations_tmp.html", "regulations_tmp.html"],
+            options,
+            parse_regulations_guidelines,
+            html_to_pdf,
+            merged=options.merged,
+        )
         # errors, warnings = generate_htmltopdf(input_regulations, input_guidelines, options)
     elif options.target == "json":
         check_output(options.output)
-        errors, warnings = generate(WCADocumentJSON,
-                                    (input_regulations, input_guidelines),
-                                    ["wca-regulations.json"],
-                                    options, parse_regulations_guidelines, merged=options.merged)
+        errors, warnings = generate(
+            WCADocumentJSON,
+            (input_regulations, input_guidelines),
+            ["wca-regulations.json"],
+            options,
+            parse_regulations_guidelines,
+            merged=options.merged,
+        )
     elif options.target == "check" or options.diff:
         print("Checking input file(s)...")
-        astreg, astguide, errors, warnings = parse_regulations_guidelines(input_regulations,
-                                                                          input_guidelines)
+        astreg, astguide, errors, warnings = parse_regulations_guidelines(
+            input_regulations, input_guidelines
+        )
         if len(errors) + len(warnings) == 0:
             print("All checks passed!")
             if options.diff:
@@ -360,5 +425,5 @@ def run():
     handle_errors_and_warnings(errors, warnings)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

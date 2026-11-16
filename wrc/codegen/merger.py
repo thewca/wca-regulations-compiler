@@ -1,5 +1,13 @@
-from wrc.sema.ast import Article, Section, TableOfContent, Regulation, Guideline, split_rule_number
 from copy import deepcopy
+
+from wrc.sema.ast import (
+    Article,
+    Guideline,
+    Regulation,
+    Section,
+    TableOfContent,
+    split_rule_number,
+)
 
 NOTES_INDEX = 0
 TOC_INDEX = 1
@@ -8,7 +16,7 @@ FIRST_ARTICLE_INDEX = 2
 
 class BadFormatError(Exception):
     def __init__(self, message: str):
-        self.message = message + '. Please report this issue to the developer.'
+        self.message = message + ". Please report this issue to the developer."
         super().__init__(message)
 
 
@@ -65,13 +73,15 @@ def reg_number_is_lower(num1: list, num2: list) -> bool:
 
 def get_reg_number(reg) -> list:
     if isinstance(reg, Guideline):
-        reg = reg.number.split('+')[0]
+        reg = reg.number.split("+")[0]
         num = split_rule_number(reg)
     elif isinstance(reg, Regulation):
         num = split_rule_number(reg.number)
     else:
-        raise BadFormatError(f'get_reg_number expected Regulation or Guideline, got {type(reg).__name__}')
-    if str(num[-1]) == '0':
+        raise BadFormatError(
+            f"get_reg_number expected Regulation or Guideline, got {type(reg).__name__}"
+        )
+    if str(num[-1]) == "0":
         # Because split_rule_number() sometimes returns a 0 at the end, and we don't want that here.
         del num[-1]
     return num
@@ -83,15 +93,18 @@ def merge_ast(astreg, astguide, language_options):
     """
     # We only want the Articles, so we will start the for loop below at FIRST_ARTICLE_INDEX,
     # and check if the indices for Notes, TOC and First Article are correct.
-    if not isinstance(astreg.sections[NOTES_INDEX], Section) or \
-            not isinstance(astguide.sections[NOTES_INDEX], Section):
-        raise BadFormatError('NOTES_INDEX is incorrect')
+    if not isinstance(astreg.sections[NOTES_INDEX], Section) or not isinstance(
+        astguide.sections[NOTES_INDEX], Section
+    ):
+        raise BadFormatError("NOTES_INDEX is incorrect")
     if not isinstance(astreg.sections[TOC_INDEX], TableOfContent):
-        raise BadFormatError('TOC_INDEX is incorrect')
+        raise BadFormatError("TOC_INDEX is incorrect")
     for document in [astreg, astguide]:
-        if not hasattr(document.sections[FIRST_ARTICLE_INDEX], 'number') or \
-                document.sections[FIRST_ARTICLE_INDEX].number != '1':
-            raise BadFormatError('FIRST_ARTICLE_INDEX is incorrect')
+        if (
+            not hasattr(document.sections[FIRST_ARTICLE_INDEX], "number")
+            or document.sections[FIRST_ARTICLE_INDEX].number != "1"
+        ):
+            raise BadFormatError("FIRST_ARTICLE_INDEX is incorrect")
 
     # We take the astreg as the base, and then we add the guidelines in their corresponding places.
     ast_combined = deepcopy(astreg)
@@ -101,13 +114,17 @@ def merge_ast(astreg, astguide, language_options):
     # "WCA Regulations and Guidelines" of the Regulations document.
     # languages_options is used to handle translations.
     ast_combined.sections[NOTES_INDEX].content.append(
-        [cont for cont in astguide.sections[NOTES_INDEX].content if language_options['regulations'] not in cont.title])
+        [
+            cont
+            for cont in astguide.sections[NOTES_INDEX].content
+            if language_options["regulations"] not in cont.title
+        ]
+    )
 
     # Now we iterate over all the Articles found in astguide, from FIRST_ARTICLE_INDEX until the end of the
     # sections list.
     guide_sections = astguide.sections[FIRST_ARTICLE_INDEX:]
     for guide_section in guide_sections:
-
         stack = deepcopy(guide_section.content)
         reg_section = None
         # Find the associated section in the Regulations or add it if there isn't one.
@@ -116,7 +133,7 @@ def merge_ast(astreg, astguide, language_options):
             if not isinstance(section, Article):
                 # We could just continue here, but finding a non-Article section after FIRST_ARTICLE_INDEX
                 # is worth raising an exception.
-                raise BadFormatError('Section is not an Article')
+                raise BadFormatError("Section is not an Article")
 
             if section.number == guide_section.number:
                 # We found the section!
@@ -134,9 +151,12 @@ def merge_ast(astreg, astguide, language_options):
         while len(stack) > 0:
             guideline = stack.pop(0)
             guideline_num = get_reg_number(guideline)
-            inserted_index = recursive_insert(reg_section.content, guideline, guideline_num, stack)
+            assert reg_section is not None
+            inserted_index = recursive_insert(
+                reg_section.content, guideline, guideline_num, stack
+            )
             if inserted_index == -1:
-                raise BadFormatError(f'Could not insert guideline {guideline.number}')
+                raise BadFormatError(f"Could not insert guideline {guideline.number}")
 
     return ast_combined
 
@@ -150,14 +170,16 @@ def recursive_insert(root, guideline, guideline_num, stack) -> int:
         if inserted_index != -1:
             # The guideline was inserted in the previous iteration.
             break
-        if hasattr(node, 'siblings') and node.siblings:
+        if hasattr(node, "siblings") and node.siblings:
             # The 'siblings' boolean attribute is used to insert after the guideline with the most pluses (+).
             continue
 
         node_num = get_reg_number(node)
 
         # if len == len and node_num >= guideline_num.
-        if len(node_num) == len(guideline_num) and not reg_number_is_lower(node_num, guideline_num):
+        if len(node_num) == len(guideline_num) and not reg_number_is_lower(
+            node_num, guideline_num
+        ):
             if node_num == guideline_num:
                 # The guideline goes below the current node.
                 inserted_index = index + 1
@@ -186,8 +208,13 @@ def recursive_insert(root, guideline, guideline_num, stack) -> int:
 
         # The first part of the numeration matches, but the numeration of the guideline is longer, so we go down
         # with the current node as the root.
-        elif len(node_num) < len(guideline_num) and node_num == guideline_num[:len(node_num)]:
-            inserted_index = recursive_insert(node.children, guideline, guideline_num, stack)
+        elif (
+            len(node_num) < len(guideline_num)
+            and node_num == guideline_num[: len(node_num)]
+        ):
+            inserted_index = recursive_insert(
+                node.children, guideline, guideline_num, stack
+            )
 
         # else: next node.
 
