@@ -40,3 +40,8 @@ namespaces = false
 wrc = [
     "data/*",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.5",
+]
