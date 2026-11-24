@@ -11,6 +11,9 @@ test: test-regulations test-states test-languages
 .PHONY: test-regulations
 test-regulations:
 	uv run -- wrc --target html -- ./test/samples/plus_n/wca-regulations.md
+	cat ./build/index.html.erb | grep "Translation"
+	uv run -- wrc --auto-remove-translation-subsection --target html -- ./test/samples/plus_n/wca-regulations.md
+	cat ./build/index.html.erb | grep -v "Translation"
 	uv run -- wrc --target html -- ./test/samples/multiplus/wca-regulations.md
 	uv run -- ./test/mixed_guidelines.py
 

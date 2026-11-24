@@ -4,6 +4,7 @@ import os.path
 from importlib.resources import as_file, files
 from pathlib import Path
 
+from wrc.codegen.cg import GenerationOptions
 from wrc.codegen.cghtml import WCADocumentHtml
 from wrc.sema.ast import Article, LabelDecl, Rule
 
@@ -48,8 +49,15 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
 
     name = "PDF"
 
-    def __init__(self, versionhash, language, pdf):
-        super().__init__(versionhash, language, pdf)
+    def __init__(
+        self, versionhash, language, pdf, generation_options: GenerationOptions
+    ):
+        super().__init__(
+            versionhash,
+            language,
+            pdf,
+            generation_options=generation_options,
+        )
         self.urls = {"regulations": "", "guidelines": "", "pdf": pdf}
         self.emit_rails_header = False
         self.emit_toc = False

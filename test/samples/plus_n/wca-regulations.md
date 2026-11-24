@@ -2,6 +2,10 @@
 
 <version>Version: January 2, 2027
 
+## Translation
+
+This is a translation section.
+
 ## <article-1><officials><officials> Article 1: Officials
 
 - 1a) Hello!

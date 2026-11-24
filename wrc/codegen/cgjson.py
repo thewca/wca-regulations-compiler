@@ -3,7 +3,7 @@
 import json
 import sys
 
-from wrc.codegen.cg import CGDocument
+from wrc.codegen.cg import CGDocument, GenerationOptions
 from wrc.codegen.cghtml import simple_md2html
 from wrc.sema.ast import Guideline
 
@@ -21,10 +21,16 @@ class WCADocumentJSON(CGDocument):
 
     name = "JSON"
 
-    def __init__(self, versionhash, language, pdf):
+    def __init__(
+        self,
+        versionhash: str,
+        language: str,
+        pdf: str,
+        generation_options: GenerationOptions,
+    ):
         # We don't need it
         del language
-        super().__init__(list)
+        super().__init__(list, generation_options=generation_options)
         self.versionhash = versionhash
         self.urls = {
             "regulations": REGULATIONS_ROOT,

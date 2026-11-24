@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -7,6 +9,8 @@ import urllib.request
 from importlib.resources import as_file, files
 from pathlib import Path
 from subprocess import CalledProcessError, check_call
+
+from wrc.codegen.cg import GenerationOptions
 
 from .codegen.cghtml import WCADocumentHtml
 from .codegen.cghtmltopdf import WCADocumentHtmlToPdf
@@ -99,18 +103,18 @@ def output(result_tuple, outputs, output_dir):
 
 def generate(
     backend_class,
-    inputs,
-    outputs,
+    inputs: list[str] | tuple[Path, Path],
+    outputs: list[str],
     options,
     parsing_method,
+    generation_options: GenerationOptions,
     post_process=None,
-    merged=False,
 ):
     astreg, astguide, errors, warnings = parsing_method(*inputs)
     if len(errors) + len(warnings) == 0:
         print("Compiled document, generating " + backend_class.name + "...")
         languages_options = languages(False)[options.language]
-        if merged:
+        if generation_options.merged:
             languages_options["pdf"] += ".merged"
         if backend_class is WCADocumentHtml:
             # Other subclasses of CGDocument do not have a "merged" constructor parameter.
@@ -118,13 +122,19 @@ def generate(
                 options.git_hash,
                 options.language,
                 languages_options["pdf"],
-                merged=merged,
+                generation_options=GenerationOptions(
+                    merged=generation_options.merged,
+                    auto_remove_translation_subsection=generation_options.auto_remove_translation_subsection,
+                ),
             )
         else:
             cg_instance = backend_class(
-                options.git_hash, options.language, languages_options["pdf"]
+                options.git_hash,
+                options.language,
+                languages_options["pdf"],
+                generation_options=GenerationOptions(),
             )
-        if merged:
+        if generation_options.merged:
             # Merge both ASTs and do not visit astguide.
             astreg = merge_ast(astreg, astguide, languages_options)
             result_tuple = cg_instance.emit(astreg, None)
@@ -220,7 +230,7 @@ def generate_diff(input_ast_reg, input_ast_guide, options):
     return (errors, warnings)
 
 
-def files_from_dir(file_or_directory):
+def files_from_dir(file_or_directory) -> tuple[Path, Path]:
     regulations = None
     guidelines = None
     if os.path.isdir(file_or_directory):
@@ -245,7 +255,7 @@ def files_from_dir(file_or_directory):
     else:
         print(f"Warning: {file_or_directory} is not a file or a directory. Ignoring.")
         sys.exit(0)
-    return regulations, guidelines
+    return regulations, guidelines  # type: ignore # TODO: this function implementation needs to be refactored to avoid type hacks
 
 
 def check_output(directory):
@@ -333,7 +343,12 @@ def states():
     if options.target == "json":
         check_output(options.output)
         errors, warnings = generate(
-            WCADocumentJSON, [options.input], ["states.json"], options, parse_states
+            WCADocumentJSON,
+            [options.input],
+            ["states.json"],
+            options,
+            parse_states,
+            GenerationOptions(),
         )
     elif options.target == "check":
         print("Checking input file(s)...")
@@ -357,6 +372,11 @@ def run():
     )
     action_group.add_argument("--diff", help="Diff against the specified file")
     action_group.add_argument("-v", "--version", action="version", version=__version__)
+    argparser.add_argument(
+        "--auto-remove-translation-subsection",
+        action="store_true",
+        help="Remove the translation subsection from the English version as before 2026-11.",
+    )
     argparser.add_argument(
         "-m",
         "--merged",
@@ -388,7 +408,10 @@ def run():
             output_files,
             options,
             parse_regulations_guidelines,
-            merged=options.merged,
+            generation_options=GenerationOptions(
+                merged=options.merged,
+                auto_remove_translation_subsection=options.auto_remove_translation_subsection,
+            ),
         )
     elif options.target == "pdf":
         check_output(options.output)
@@ -403,8 +426,11 @@ def run():
             ["regulations_tmp.html", "regulations_tmp.html"],
             options,
             parse_regulations_guidelines,
-            html_to_pdf,
-            merged=options.merged,
+            generation_options=GenerationOptions(
+                merged=options.merged,
+                auto_remove_translation_subsection=options.auto_remove_translation_subsection,
+            ),
+            post_process=html_to_pdf,
         )
         # errors, warnings = generate_htmltopdf(input_regulations, input_guidelines, options)
     elif options.target == "json":
@@ -415,7 +441,10 @@ def run():
             ["wca-regulations.json"],
             options,
             parse_regulations_guidelines,
-            merged=options.merged,
+            generation_options=GenerationOptions(
+                merged=options.merged,
+                auto_remove_translation_subsection=options.auto_remove_translation_subsection,
+            ),
         )
     elif options.target == "check" or options.diff:
         print("Checking input file(s)...")

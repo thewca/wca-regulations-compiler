@@ -2,7 +2,7 @@
 
 import re
 
-from wrc.codegen.cg import CGDocument
+from wrc.codegen.cg import CGDocument, GenerationOptions
 from wrc.sema.ast import LabelDecl, Rule, Ruleset
 
 REPO_REG = "https://github.com/thewca/wca-regulations"
@@ -101,10 +101,12 @@ class WCADocumentHtml(CGDocument):
 
     name = "HTML"
 
-    def __init__(self, versionhash, language, pdf, merged=False):
-        super().__init__(str)
+    def __init__(
+        self, versionhash, language, pdf, generation_options: GenerationOptions
+    ):
+        super().__init__(str, generation_options=generation_options)
         self.regset = set()
-        if merged:
+        if generation_options.merged:
             self.urls = {"regulations": "./", "guidelines": "./", "pdf": pdf}
         else:
             self.urls = {
