@@ -38,7 +38,7 @@ class CGDocument(ASTVisitor):
 
     def shouldEmitSubsection(self, language, title):
         return not (
-            language == "english"
+            self.generation_options.auto_remove_translation_subsection
+            and language == "english"
             and title == "Translation"
-            and self.generation_options.auto_remove_translation_subsection
         )
