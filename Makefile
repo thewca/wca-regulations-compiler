@@ -50,3 +50,11 @@ check-package: build
 .PHONY: publish
 publish: build check-package
 	uv run -- twine upload dist/*
+
+.PHONY: version-bump-patch
+version-bump-patch:
+	uv version --bump patch
+
+.PHONY: version-bump-minor
+version-bump-minor:
+	uv version --bump minor
