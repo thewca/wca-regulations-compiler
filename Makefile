@@ -48,7 +48,7 @@ check-package: build
 	uv run twine check dist/*
 
 .PHONY: publish
-publish: build check-package
+publish: clean build check-package
 	uv run -- twine upload dist/*
 
 .PHONY: version-bump-patch
