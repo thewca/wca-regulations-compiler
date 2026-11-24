@@ -65,9 +65,10 @@ Process a states file (outputs into `./build/` by default):
 uv run -- wrc-states ./test/samples/states/wca-states.md --target=json
 ```
 
-## Deploying to PyPI
+## Publishing to PyPI
 
-(section for maintainers in PyPI)
+This is for maintainers in PyPI:
 
-- Bump the version number in `pyproject-toml`
-- `make publish`
+- Bump the version number in `pyproject-toml` using either `make version-bump-minor` or `make version-bump-patch`.
+- Commit, tag, and push the version bump.
+- Run: `make publish`
