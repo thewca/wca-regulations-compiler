@@ -180,8 +180,8 @@ class ASTVisitor:
     def visitSection(self, section):
         return self.visit(section.intro) and self.visit(section.content)
 
-    def visitStatesList(self, section):
-        return self.visit(section.intro) and self.visit(section.content)
+    def visitStatesList(self, states_list):
+        return self.visit(states_list.intro) and self.visit(states_list.content)
 
     def visitSubsection(self, subsection):
         return self.visit(subsection.intro) and self.visit(subsection.content)

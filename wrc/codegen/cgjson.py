@@ -32,14 +32,14 @@ class WCADocumentJSON(CGDocument):
             "pdf": pdf,
         }
 
-    def visitWCAStates(self, document):
+    def visitWCAStates(self, states):
         self.state_lists = []
-        retval = super().visitWCAStates(document)
+        retval = super().visitWCAStates(states)
         self.codegen = {
-            "title": document.title,
-            "version": document.version,
+            "title": states.title,
+            "version": states.version,
             "version_hash": self.versionhash,
-            "text": document.text,
+            "text": states.text,
             "states_lists": self.state_lists,
             "comment": COMMENTS.format(cmd=" ".join(sys.argv)),
         }
@@ -53,31 +53,31 @@ class WCADocumentJSON(CGDocument):
         )
         return retval
 
-    def emit(self, regulations, guidelines):
-        reg_list, guide_list = super().emit(regulations, guidelines)
+    def emit(self, ast_reg, ast_guide):
+        reg_list, guide_list = super().emit(ast_reg, ast_guide)
         if len(guide_list) > 0:
             reg_list.extend(guide_list)
         return json.dumps(reg_list, indent=2, separators=(",", ": ")), ""
 
-    def visitRule(self, reg):
+    def visitRule(self, rule):
         label = None
         url = "/regulations/"
 
-        if isinstance(reg, Guideline):
+        if isinstance(rule, Guideline):
             url += "guidelines.html"
-            label = reg.labelname
+            label = rule.labelname
 
-        url += "#" + reg.number
+        url += "#" + rule.number
         reg_dict = {
             "class": "regulation",
-            "id": reg.number,
-            "content_html": simple_md2html(reg.text, self.urls),
+            "id": rule.number,
+            "content_html": simple_md2html(rule.text, self.urls),
             "url": url,
         }
         if label:
             reg_dict.update({"guideline_label": label})
-        self.codegen.append(reg_dict)
-        retval = super().visitRule(reg)
+        self.codegen.append(reg_dict)  # type: ignore # TODO
+        retval = super().visitRule(rule)
         return retval
 
     def visitState(self, state):

@@ -106,9 +106,9 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
         self.no_break()
         return super().visitTableOfContent(toc)
 
-    def visitstr(self, u):
-        retval = super().visitstr(u)
-        if len(u) > 0 and not self.group_closed:
+    def visitstr(self, s):
+        retval = super().visitstr(s)
+        if len(s) > 0 and not self.group_closed:
             # We are in an introduction paragraph and we want to group it
             # with the article's h2
             self.group_closed = True
@@ -155,7 +155,7 @@ class WCADocumentHtmlToPdf(WCADocumentHtml):
         self.codegen += '<div class="page_break"></div>\n'
         return retval
 
-    def visitWCAGuidelines(self, regs):
-        retval = super().visitWCAGuidelines(regs)
+    def visitWCAGuidelines(self, guides):
+        retval = super().visitWCAGuidelines(guides)
         self.codegen += "</div></body></html>\n"
         return retval
