@@ -24,6 +24,7 @@ test-languages:
 
 .PHONY: lint
 lint:
+	uv lock --check
 	uv run ruff check
 
 .PHONY: format
